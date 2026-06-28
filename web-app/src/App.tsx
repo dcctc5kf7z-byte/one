@@ -1,392 +1,239 @@
-import { useState, useCallback } from 'react'
-import { Layout, Row, Col, Button, Result, Typography } from 'antd'
-import type { AppPhase, WritingState, DiagnosisMeta, ParsedConfirmation, HistoryEntry } from './lib/types'
-import { parseConfirmation } from './lib/state-parser'
-import { diagnose } from './lib/api'
+import { useState, useCallback, useEffect } from 'react'
+import type { HermesPhase, ViewMode, HermesHistoryEntry, HermesDiagnoseResponse } from './lib/hermes-types'
+import { hermesDiagnose } from './lib/api'
 import Header from './components/Header'
-import InputPanel from './components/InputPanel'
-import DiagnoseButton from './components/DiagnoseButton'
-import DiagnosticReport from './components/DiagnosticReport'
-import StateConfirmation from './components/StateConfirmation'
-import StatePicker from './components/StatePicker'
-import ActionBar from './components/ActionBar'
+import EditorWithGutter from './components/EditorWithGutter'
+import ModeSlider from './components/ModeSlider'
+import DiagnosisPanel from './components/DiagnosisPanel'
+import AnalyzeButton from './components/AnalyzeButton'
+import HistoryPanel from './components/HistoryPanel'
 import Footer from './components/Footer'
 import PrivacyNotice from './components/PrivacyNotice'
-import QuotaBadge from './components/QuotaBadge'
-import PaymentWall from './components/PaymentWall'
-import HistoryPanel from './components/HistoryPanel'
-
-const { Content } = Layout
-const { Text } = Typography
-
-const MAX_RETRIES = 2   // 0-indexed: 首次 + 2 次换角度 = 3 次总计
-const MAX_FAILURES = 3   // 连续 API 失败上限
-const QUOTA_TOTAL = 3    // 每日免费次数
 
 function App() {
   // ── 输入 ──
   const [text, setText] = useState('')
 
   // ── 阶段 ──
-  const [phase, setPhase] = useState<AppPhase>('input')
+  const [phase, setPhase] = useState<HermesPhase>('idle')
+
+  // ── 模式 ──
+  const [mode, setMode] = useState<ViewMode>(() => {
+    const stored = localStorage.getItem('hermes_mode')
+    return (stored === 'perspective' || stored === 'my_text') ? stored : 'perspective'
+  })
 
   // ── API 结果 ──
-  const [currentDiagnosis, setCurrentDiagnosis] = useState<string | null>(null)
-  const [currentMeta, setCurrentMeta] = useState<DiagnosisMeta | null>(null)
-  const [parsedConfirmation, setParsedConfirmation] = useState<ParsedConfirmation | null>(null)
-  const [confirmedState, setConfirmedState] = useState<WritingState | null>(null)
+  const [result, setResult] = useState<HermesDiagnoseResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // ── 会话连续性 ──
-  const [conversationId, setConversationId] = useState<string | null>(null)
-  const [previousState, setPreviousState] = useState<WritingState | null>(null)
-  const [sameStateCount, setSameStateCount] = useState(0)
-
-  // ── 重试 / 失败 ──
-  const [retryCount, setRetryCount] = useState(0)
-  const [failedAttempts, setFailedAttempts] = useState(0)
-
-  // ── 计费 ──
-  const [quotaUsed, setQuotaUsed] = useState(0)
-
   // ── 历史 ──
-  const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [history, setHistory] = useState<HermesHistoryEntry[]>([])
 
-  // ── 派生状态 ──
-  const isInputDisabled = phase !== 'input'
-  const isLoading = phase === 'diagnosing' || phase === 're_diagnosing'
-  const quotaExhausted = quotaUsed >= QUOTA_TOTAL
+  // ── 模式持久化 ──
+  useEffect(() => {
+    localStorage.setItem('hermes_mode', mode)
+  }, [mode])
 
-  // ═══════════════════════════════════════════════════
-  // 处理器（全部保持不变）
-  // ═══════════════════════════════════════════════════
-
-  const shouldSkipConfirmation = useCallback((parsed: ParsedConfirmation): boolean => {
-    return parsed.state === previousState && sameStateCount >= 2
-  }, [previousState, sameStateCount])
-
-  const handleDiagnose = useCallback(async () => {
-    if (quotaUsed >= QUOTA_TOTAL) return
-
-    setError(null)
-    setPhase('diagnosing')
-
-    try {
-      const result = await diagnose(text, 0, conversationId ?? undefined)
-      setCurrentDiagnosis(result.diagnosis)
-      setCurrentMeta(result.meta)
-      setRetryCount(0)
-      setFailedAttempts(0)
-
-      if (result.meta.conversationId && !conversationId) {
-        setConversationId(result.meta.conversationId)
-      }
-
-      const parsed = parseConfirmation(result.diagnosis)
-      if (parsed && !shouldSkipConfirmation(parsed)) {
-        setParsedConfirmation(parsed)
-        setPhase('confirming')
-      } else {
-        const finalState = parsed?.state ?? 'writing'
-        setConfirmedState(finalState)
-        setParsedConfirmation(null)
-        setPhase('diagnosis_shown')
-        setQuotaUsed(q => q + 1)
-        setHistory(h => [...h, {
-          id: crypto.randomUUID(),
-          textSnippet: text.slice(0, 50),
-          diagnosis: result.diagnosis,
-          confirmedState: finalState,
-          timestamp: Date.now(),
-        }])
-        if (finalState === previousState) {
-          setSameStateCount(c => c + 1)
-        } else {
-          setPreviousState(finalState)
-          setSameStateCount(1)
-        }
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : '诊断失败——再试一次。'
-      setError(message)
-      setFailedAttempts(f => {
-        const next = f + 1
-        if (next >= MAX_FAILURES) {
-          setPhase('exhausted')
-        } else {
-          setPhase('input')
-        }
-        return next
+  // ── 调试：输出 API 结果（开发用） ──
+  useEffect(() => {
+    if (result) {
+      console.debug('[Hermes] Diagnosis result:', {
+        sentences: result.sentences.length,
+        gutterLines: result.gutter_blocks.length,
+        colors: new Set(result.sentences.flatMap(s => s.colors)),
+        endpoint: result.meta.endpoint,
       })
     }
-  }, [text, conversationId, quotaUsed, shouldSkipConfirmation, previousState])
+  }, [result])
 
-  const handleConfirm = useCallback(() => {
-    if (!parsedConfirmation || !currentDiagnosis) return
+  // ═══════════════════════════════════════════════════
+  // 处理器
+  // ═══════════════════════════════════════════════════
 
-    const { state } = parsedConfirmation
-    setConfirmedState(state)
-    setPhase('diagnosis_shown')
+  const handleAnalyze = useCallback(async () => {
+    if (!text.trim()) return
 
-    setQuotaUsed(q => q + 1)
-
-    setHistory(h => [...h, {
-      id: crypto.randomUUID(),
-      textSnippet: text.slice(0, 50),
-      diagnosis: currentDiagnosis,
-      confirmedState: state,
-      timestamp: Date.now(),
-    }])
-
-    if (state === previousState) {
-      setSameStateCount(c => c + 1)
-    } else {
-      setPreviousState(state)
-      setSameStateCount(1)
-    }
-  }, [parsedConfirmation, currentDiagnosis, text, previousState])
-
-  const handleCorrect = useCallback(() => {
-    setPhase('correcting')
-  }, [])
-
-  const handleStateSelect = useCallback(async (correctedState: WritingState) => {
-    setPhase('re_diagnosing')
     setError(null)
+    setPhase('analyzing')
 
     try {
-      const result = await diagnose(text, retryCount, conversationId ?? undefined, correctedState)
-      setCurrentDiagnosis(result.diagnosis)
-      setCurrentMeta(result.meta)
-      setConfirmedState(correctedState)
-      setParsedConfirmation(null)
-      setFailedAttempts(0)
-      setPhase('diagnosis_shown')
+      const fingerprint = mode === 'my_text'
+        ? JSON.parse(localStorage.getItem('hermes_fingerprint') || 'null')
+        : undefined
 
+      const response = await hermesDiagnose(text, mode, fingerprint ?? undefined)
+      setResult(response)
+
+      // 我的文字模式：更新指纹
+      if (mode === 'my_text' && response.fingerprint) {
+        localStorage.setItem('hermes_fingerprint', JSON.stringify(response.fingerprint))
+      }
+
+      // 添加到历史
       setHistory(h => [...h, {
         id: crypto.randomUUID(),
-        textSnippet: text.slice(0, 50),
-        diagnosis: result.diagnosis,
-        confirmedState: correctedState,
         timestamp: Date.now(),
+        mode,
+        textSnippet: text.slice(0, 50),
+        text,
+        sentences: response.sentences,
+        diagnosis: response.diagnosis,
+        fingerprint_id: response.meta.fingerprint_id,
       }])
 
-      setPreviousState(correctedState)
-      setSameStateCount(0)
+      setPhase('results_shown')
     } catch (err) {
       const message = err instanceof Error ? err.message : '诊断失败——再试一次。'
       setError(message)
-      setFailedAttempts(f => {
-        const next = f + 1
-        if (next >= MAX_FAILURES) {
-          setPhase('exhausted')
-        } else {
-          setPhase('input')
-        }
-        return next
-      })
+      setPhase('idle')
     }
-  }, [text, retryCount, conversationId])
+  }, [text, mode])
 
-  const handleCancelCorrection = useCallback(() => {
-    setPhase('confirming')
-  }, [])
-
-  const handleContinueWriting = useCallback(() => {
-    setText('')
-    setCurrentDiagnosis(null)
-    setCurrentMeta(null)
-    setParsedConfirmation(null)
-    setConfirmedState(null)
-    setRetryCount(0)
+  const handleRetry = useCallback(() => {
     setError(null)
-    setFailedAttempts(0)
-    setConversationId(null)
-    setPhase('input')
-  }, [])
-
-  const handleDifferentAngle = useCallback(async () => {
-    if (retryCount >= MAX_RETRIES) return
-
-    const newRetryCount = retryCount + 1
-    setRetryCount(newRetryCount)
-    setPhase('re_diagnosing')
-    setError(null)
-
-    try {
-      const result = await diagnose(text, newRetryCount, conversationId ?? undefined)
-      setCurrentDiagnosis(result.diagnosis)
-      setCurrentMeta(result.meta)
-      setFailedAttempts(0)
-
-      if (result.meta.conversationId && !conversationId) {
-        setConversationId(result.meta.conversationId)
-      }
-
-      const parsed = parseConfirmation(result.diagnosis)
-      if (parsed && !shouldSkipConfirmation(parsed)) {
-        setParsedConfirmation(parsed)
-        setPhase('confirming')
-      } else {
-        const finalState = parsed?.state ?? 'writing'
-        setConfirmedState(finalState)
-        setParsedConfirmation(null)
-        setPhase('diagnosis_shown')
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : '诊断失败——再试一次。'
-      setError(message)
-      setFailedAttempts(f => {
-        const next = f + 1
-        if (next >= MAX_FAILURES) {
-          setPhase('exhausted')
-        } else {
-          setPhase('input')
-        }
-        return next
-      })
-    }
-  }, [text, retryCount, conversationId, shouldSkipConfirmation])
-
-  const handleTextChange = useCallback((newText: string) => {
-    setText(newText)
-    if (newText !== text && phase !== 'input') {
-      setCurrentDiagnosis(null)
-      setCurrentMeta(null)
-      setParsedConfirmation(null)
-      setConfirmedState(null)
-      setRetryCount(0)
-      setError(null)
-      setPhase('input')
-    }
-  }, [text, phase])
+    handleAnalyze()
+  }, [handleAnalyze])
 
   const handleReset = useCallback(() => {
     setText('')
-    setCurrentDiagnosis(null)
-    setCurrentMeta(null)
-    setParsedConfirmation(null)
-    setConfirmedState(null)
-    setRetryCount(0)
+    setResult(null)
     setError(null)
-    setFailedAttempts(0)
-    setConversationId(null)
-    setPhase('input')
+    setPhase('idle')
   }, [])
 
+  const handleModeChange = useCallback((newMode: ViewMode) => {
+    setMode(newMode)
+    // 切换到我的文字模式时，如果已有分析结果，触发重新分析
+    if (newMode === 'my_text' && result && text.trim()) {
+      // 异步重新分析以启用松绿
+      hermesDiagnose(text, newMode).then(response => {
+        setResult(response)
+        if (response.fingerprint) {
+          localStorage.setItem('hermes_fingerprint', JSON.stringify(response.fingerprint))
+        }
+      }).catch(console.error)
+    }
+  }, [result, text])
+
+  const handleTextChange = useCallback((newText: string) => {
+    setText(newText)
+    // 编辑文字时重置状态
+    if (phase !== 'idle') {
+      setResult(null)
+      setError(null)
+      setPhase('idle')
+    }
+  }, [phase])
+
   // ═══════════════════════════════════════════════════
-  // 渲染（使用 antd 组件）
+  // 渲染
   // ═══════════════════════════════════════════════════
 
-  const stateLabels: Record<WritingState, string> = {
-    empty: '空虚', vague_idea: '模糊念头', writing: '写作中',
-    stuck: '卡住了', finished: '写完了',
-  }
+  const isLoading = phase === 'analyzing'
+  const showResults = phase === 'results_shown' && result
+  const isMyTextMode = mode === 'my_text'
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#FAFAF9' }}>
-      <Content style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 16px', width: '100%' }}>
-        {/* 顶部标题栏 */}
-        <Row justify="space-between" align="top" style={{ marginBottom: 32 }}>
-          <Col>
-            <Header />
-          </Col>
-          <Col>
-            <QuotaBadge used={quotaUsed} total={QUOTA_TOTAL} />
-          </Col>
-        </Row>
+    <div className="min-h-screen bg-[#FAFAF9] text-[#1A1A1A]">
+      <div className="max-w-[1200px] mx-auto px-4 py-6 w-full">
+        {/* ── 顶部：标题 + 模式滑块 ── */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+          <Header />
+          <ModeSlider mode={mode} onChange={handleModeChange} disabled={isLoading} />
+        </div>
 
-        {/* 双列布局 */}
-        <Row gutter={[32, 24]}>
-          {/* ── 左列：输入区 ── */}
-          <Col xs={24} lg={10}>
-            {quotaExhausted && phase === 'input' ? (
-              <PaymentWall />
-            ) : phase === 'exhausted' ? (
-              <Result
-                status="error"
-                title="暂时无法连接诊断服务"
-                subTitle={`连续 ${failedAttempts} 次连接失败。请稍后再试。`}
-                extra={
-                  <Button type="primary" onClick={handleReset}>
-                    重新开始
-                  </Button>
-                }
-              />
-            ) : (
-              <>
-                <InputPanel
-                  text={text}
-                  onChange={handleTextChange}
-                  disabled={isInputDisabled}
+        {/* ── 双列布局 ── */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* ── 左列：编辑区 + 分析按钮 ── */}
+          <div className="w-full lg:w-[45%] flex flex-col gap-4">
+            <EditorWithGutter
+              text={text}
+              onChange={handleTextChange}
+              gutterBlocks={showResults ? result.gutter_blocks : null}
+              isLoading={isLoading}
+              disabled={isLoading}
+            />
+
+            <div className="flex flex-col gap-3">
+              {phase === 'idle' && (
+                <AnalyzeButton
+                  onClick={handleAnalyze}
+                  isLoading={false}
+                  disabled={!text.trim()}
                 />
-                {phase === 'input' && !quotaExhausted && (
-                  <div style={{ marginTop: 16 }}>
-                    <DiagnoseButton
-                      onClick={handleDiagnose}
-                      isLoading={false}
-                    />
-                  </div>
-                )}
-                <PrivacyNotice />
-              </>
-            )}
-          </Col>
+              )}
 
-          {/* ── 右列：报告区 ── */}
-          <Col xs={24} lg={14}>
-            {phase === 'confirming' && parsedConfirmation ? (
-              <StateConfirmation
-                stateLabel={parsedConfirmation.stateLabel}
-                onConfirm={handleConfirm}
-                onCorrect={handleCorrect}
-              />
-            ) : phase === 'correcting' && parsedConfirmation ? (
-              <StatePicker
-                currentStateLabel={parsedConfirmation.stateLabel}
-                onSelect={handleStateSelect}
-                onCancel={handleCancelCorrection}
-              />
-            ) : (
-              <>
-                <DiagnosticReport
-                  diagnosis={
-                    (phase === 'confirming' || phase === 'correcting')
-                      ? null
-                      : currentDiagnosis
-                  }
-                  isLoading={isLoading}
-                  error={error}
-                  phase={phase}
+              {phase === 'analyzing' && (
+                <AnalyzeButton
+                  onClick={() => {}}
+                  isLoading={true}
+                  disabled={true}
                 />
+              )}
 
-                {phase === 'diagnosis_shown' && (
-                  <>
-                    <ActionBar
-                      onContinueWriting={handleContinueWriting}
-                      onDifferentAngle={handleDifferentAngle}
-                      retryCount={retryCount}
-                      maxRetries={MAX_RETRIES}
-                      isReDiagnosing={isLoading}
-                    />
-                    {confirmedState && (
-                      <Text type="secondary" style={{ fontSize: 13, display: 'block', marginTop: 16 }}>
-                        当前判断：{stateLabels[confirmedState]}
-                      </Text>
-                    )}
-                    <HistoryPanel entries={history} endpoint={currentMeta?.endpoint} />
-                  </>
-                )}
-              </>
-            )}
-          </Col>
-        </Row>
-      </Content>
+              {error && (
+                <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <span className="text-red-700 text-sm flex-1">{error}</span>
+                  <button
+                    onClick={handleRetry}
+                    className="px-3 py-1 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded transition-colors"
+                  >
+                    重试
+                  </button>
+                </div>
+              )}
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px', width: '100%' }}>
-        <Footer />
+              <PrivacyNotice />
+            </div>
+          </div>
+
+          {/* ── 右列：诊断面板 ── */}
+          <div className="w-full lg:w-[55%]">
+            <DiagnosisPanel
+              diagnosis={showResults ? result.diagnosis : null}
+              isLoading={isLoading}
+              error={error}
+              mode={mode}
+              pineGreenActive={result?.meta.pine_green_active ?? false}
+            />
+          </div>
+        </div>
+
+        {/* ── 底部：历史面板（仅我的文字模式） ── */}
+        {isMyTextMode && history.length > 0 && (
+          <div className="mt-8">
+            <HistoryPanel entries={history} />
+          </div>
+        )}
+
+        {/* ── 底部操作（结果展示后） ── */}
+        {showResults && (
+          <div className="flex items-center gap-4 mt-6 pt-4 border-t border-gray-200">
+            <button
+              onClick={handleReset}
+              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              重新开始
+            </button>
+            <span className="text-xs text-gray-400">
+              {result.sentences.length} 句分析 · {result.meta.endpoint}
+            </span>
+          </div>
+        )}
       </div>
-    </Layout>
+
+      <Footer mode={mode} textsAnalyzed={
+        isMyTextMode
+          ? (() => {
+              try {
+                const fp = JSON.parse(localStorage.getItem('hermes_fingerprint') || 'null')
+                return fp?.texts_analyzed ?? history.length
+              } catch { return history.length }
+            })()
+          : undefined
+      } />
+    </div>
   )
 }
 

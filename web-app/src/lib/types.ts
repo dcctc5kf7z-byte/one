@@ -1,9 +1,11 @@
 /**
  * Phase C：全状态类型定义
  * 五状态 X→Y→Z 诊断系统的前端类型基础
+ *
+ * Phase 2 Hermes 新类型请从 ./hermes-types 导入
  */
 
-// ── 五状态 ──
+// ── 五状态（v3.1 Phase C，Phase 2 中逐步弃用） ──
 export type WritingState = 'empty' | 'vague_idea' | 'writing' | 'stuck' | 'finished'
 
 export const WRITING_STATE_LABELS: Record<WritingState, string> = {

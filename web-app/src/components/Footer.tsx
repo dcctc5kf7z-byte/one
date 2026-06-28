@@ -1,15 +1,23 @@
-import { Divider, Typography } from 'antd'
+import type { ViewMode } from '../lib/hermes-types'
 
-const { Text } = Typography
+interface Props {
+  mode?: ViewMode
+  textsAnalyzed?: number
+}
 
-export default function Footer() {
+export default function Footer({ mode, textsAnalyzed }: Props) {
   return (
     <>
-      <Divider style={{ margin: '48px 0 0 0', borderColor: 'rgba(13,13,13,0.08)' }} />
-      <footer style={{ paddingTop: 16, paddingBottom: 24 }}>
-        <Text type="secondary" style={{ fontSize: 13 }}>
+      <hr className="border-gray-100 mx-auto max-w-[1200px] px-4 mt-12 mb-0" />
+      <footer className="max-w-[1200px] mx-auto px-4 py-4 pb-6 flex items-center justify-between">
+        <span className="text-[13px] text-gray-400">
           这是镜子，不是答案。笔在你手里。
-        </Text>
+        </span>
+        {mode === 'my_text' && textsAnalyzed !== undefined && textsAnalyzed > 0 && (
+          <span className="text-[12px] text-gray-300">
+            写作指纹：已分析 {textsAnalyzed} 篇
+          </span>
+        )}
       </footer>
     </>
   )

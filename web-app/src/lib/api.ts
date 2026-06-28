@@ -6,9 +6,13 @@
  */
 
 import type { DiagnoseResponse, WritingState } from './types'
+import type { HermesDiagnoseResponse, ViewMode, FingerprintData } from './hermes-types'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || ''
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+const HERMES_DIAGNOSE_URL = import.meta.env.VITE_HERMES_DIAGNOSE_URL || SUPABASE_URL.replace(
+  'anthropic-diagnose', 'hermes-diagnose'
+)
 
 /**
  * 调用诊断 Edge Function
@@ -64,4 +68,46 @@ export async function diagnose(
   }
 
   return data as DiagnoseResponse
+}
+
+/**
+ * 调用 Hermes 诊断 Edge Function (Phase 2)
+ * @param text        - 用户输入的文字
+ * @param mode         - 模式：perspective | my_text
+ * @param fingerprint - 写作指纹数据（仅 my_text 模式）
+ */
+export async function hermesDiagnose(
+  text: string,
+  mode: ViewMode = 'perspective',
+  fingerprint?: FingerprintData,
+): Promise<HermesDiagnoseResponse> {
+  if (!HERMES_DIAGNOSE_URL) {
+    throw new Error('Hermes Diagnosis URL 未配置。')
+  }
+
+  const body: Record<string, unknown> = {
+    text,
+    mode,
+  }
+
+  if (fingerprint) {
+    body.fingerprint = fingerprint
+  }
+
+  const response = await fetch(HERMES_DIAGNOSE_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.message || `请求失败 (${response.status})`)
+  }
+
+  return data as HermesDiagnoseResponse
 }
