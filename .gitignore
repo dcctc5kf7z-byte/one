@@ -22,6 +22,9 @@ out/
 *~
 .vscode/settings.json
 
+# Local settings (may contain paths/tokens)
+**/settings.local.json
+
 # OS
 .DS_Store
 Thumbs.db
@@ -41,6 +44,9 @@ test/temp_*
 # Logs
 *.log
 npm-debug.log*
+
+# Nested repos
+tmp_superpowers/
 
 # Misc
 *.tmp
