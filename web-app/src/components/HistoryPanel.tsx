@@ -1,10 +1,18 @@
 import { useState } from 'react'
-import type { HermesHistoryEntry } from '../lib/hermes-types'
-import { COLOR_MAP } from '../lib/hermes-types'
+import type { HermesHistoryEntry, HermesColor } from '../lib/hermes-types'
+import { COLOR_MAP, COLOR_URGENCY } from '../lib/hermes-types'
 import { exportFingerprintJSON, importAndMergeFingerprint, getFingerprint, saveFingerprint } from '../lib/FingerprintManager'
 
 interface Props {
   entries: HermesHistoryEntry[]
+}
+
+/** 获取条目的颜色光谱（按紧迫度排序，去重） */
+function entryColorSpectrum(entry: HermesHistoryEntry): HermesColor[] {
+  if (!entry.sentences) return []
+  const all = entry.sentences.flatMap(s => s.colors)
+  const unique = [...new Set(all)]
+  return unique.sort((a, b) => COLOR_URGENCY.indexOf(a) - COLOR_URGENCY.indexOf(b))
 }
 
 export default function HistoryPanel({ entries }: Props) {
@@ -13,7 +21,7 @@ export default function HistoryPanel({ entries }: Props) {
 
   if (entries.length === 0) {
     return (
-      <div className="text-center py-8 text-sm text-gray-400">
+      <div className="text-center py-8 text-sm font-[var(--font-serif)]" style={{ color: 'var(--text-ink-tertiary)' }}>
         还没有分析记录。切换到「我的文字」模式后，分析会自动保存。
       </div>
     )
@@ -61,19 +69,27 @@ export default function HistoryPanel({ entries }: Props) {
   }
 
   return (
-    <div className="border-t border-gray-100 pt-6">
+    <div className="pt-6" style={{ borderTop: `1px solid var(--border-warm)` }}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-gray-700">分析历史</h3>
-        <div className="flex items-center gap-2">
+        <h3 className="text-sm font-medium font-[var(--font-serif)]" style={{ color: 'var(--text-ink)' }}>
+          分析历史
+        </h3>
+        <div className="flex items-center gap-3">
           <button
             onClick={handleImport}
-            className="text-[11px] text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-[11px] transition-colors font-[var(--font-sans)]"
+            style={{ color: 'var(--text-ink-tertiary)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-ink-secondary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-ink-tertiary)')}
           >
             导入指纹
           </button>
           <button
             onClick={handleExport}
-            className="text-[11px] text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-[11px] transition-colors font-[var(--font-sans)]"
+            style={{ color: 'var(--text-ink-tertiary)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-ink-secondary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-ink-tertiary)')}
           >
             导出指纹
           </button>
@@ -81,11 +97,19 @@ export default function HistoryPanel({ entries }: Props) {
       </div>
 
       {importStatus && (
-        <div className="mb-3 p-2 bg-gray-50 rounded text-xs text-gray-500">
+        <div
+          className="mb-3 p-2.5 rounded-lg text-xs font-[var(--font-sans)]"
+          style={{
+            backgroundColor: 'var(--bg-card)',
+            color: 'var(--text-ink-secondary)',
+            border: '1px solid var(--border-warm)',
+          }}
+        >
           {importStatus}
           <button
             onClick={() => setImportStatus(null)}
-            className="ml-2 text-gray-300 hover:text-gray-500"
+            className="ml-2 hover:opacity-70"
+            style={{ color: 'var(--text-ink-tertiary)' }}
           >
             ✕
           </button>
@@ -95,64 +119,80 @@ export default function HistoryPanel({ entries }: Props) {
       <div className="flex flex-col gap-2">
         {[...entries].reverse().map(entry => {
           const isExpanded = expandedId === entry.id
-          const dominantColors = entry.sentences
-            ? [...new Set(entry.sentences.flatMap(s => s.colors))].slice(0, 3)
-            : []
+          const spectrum = entryColorSpectrum(entry)
 
           return (
-            <div key={entry.id} className="border border-gray-100 rounded-lg overflow-hidden">
-              {/* Row header */}
-              <button
-                onClick={() => setExpandedId(isExpanded ? null : entry.id)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-gray-50 transition-colors"
-              >
-                <span className="text-xs text-gray-400 tabular-nums min-w-[4em]">
-                  {new Date(entry.timestamp).toLocaleTimeString('zh-CN', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </span>
-
-                <span className="flex-1 text-[13px] text-gray-600 truncate">
-                  {entry.textSnippet}
-                </span>
-
-                {dominantColors.length > 0 && (
-                  <span className="flex items-center gap-0.5">
-                    {dominantColors.map(c => (
-                      <span
-                        key={c}
-                        className="w-2.5 h-2.5 rounded-sm"
-                        style={{ backgroundColor: COLOR_MAP[c].hex }}
-                        title={COLOR_MAP[c].signal}
-                      />
-                    ))}
-                  </span>
-                )}
-
-                <svg
-                  className={`w-4 h-4 text-gray-300 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            <div
+              key={entry.id}
+              className="rounded-lg overflow-hidden flex"
+              style={{
+                border: '1px solid var(--border-warm)',
+                backgroundColor: 'var(--bg-card)',
+              }}
+            >
+              {/* 左侧颜色光谱条 */}
+              {spectrum.length > 0 && (
+                <div
+                  className="flex-shrink-0 flex"
+                  style={{ width: '4px', flexDirection: 'column' }}
                 >
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </button>
-
-              {/* Expanded content */}
-              {isExpanded && (
-                <div className="px-3 pb-3 border-t border-gray-50">
-                  <div className="mt-2 text-[13px] text-gray-500 leading-relaxed max-h-[200px] overflow-y-auto whitespace-pre-wrap">
-                    <div className="text-xs text-gray-400 mb-1">分析：</div>
-                    {entry.diagnosis.analysis.slice(0, 500)}
-                    {entry.diagnosis.analysis.length > 500 && '…'}
-                    <hr className="my-2 border-gray-50" />
-                    <div className="text-xs text-gray-400 mb-1">推进：</div>
-                    {entry.diagnosis.push.slice(0, 300)}
-                    {entry.diagnosis.push.length > 300 && '…'}
-                  </div>
+                  {spectrum.map((c) => (
+                    <span
+                      key={c}
+                      style={{
+                        flex: '1 1 0',
+                        backgroundColor: COLOR_MAP[c].hex,
+                        minHeight: '4px',
+                      }}
+                    />
+                  ))}
                 </div>
               )}
+
+              <div className="flex-1 min-w-0">
+                {/* Row header */}
+                <button
+                  onClick={() => setExpandedId(isExpanded ? null : entry.id)}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors cursor-pointer"
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(44, 36, 22, 0.03)')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <span className="text-xs tabular-nums min-w-[4.5em] font-[var(--font-sans)]" style={{ color: 'var(--text-ink-tertiary)' }}>
+                    {new Date(entry.timestamp).toLocaleTimeString('zh-CN', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+
+                  <span className="flex-1 text-[13px] truncate font-[var(--font-serif)]" style={{ color: 'var(--text-ink-secondary)' }}>
+                    {entry.textSnippet}
+                  </span>
+
+                  <svg
+                    className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ color: 'var(--text-ink-tertiary)' }}
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+
+                {/* Expanded content */}
+                {isExpanded && (
+                  <div className="px-3 pb-3" style={{ borderTop: '1px solid var(--border-warm)' }}>
+                    <div className="mt-2 text-[13px] leading-relaxed max-h-[200px] overflow-y-auto whitespace-pre-wrap font-[var(--font-serif)]" style={{ color: 'var(--text-ink-secondary)' }}>
+                      <div className="text-[11px] mb-1 font-[var(--font-sans)]" style={{ color: 'var(--text-ink-tertiary)' }}>分析：</div>
+                      {entry.diagnosis.analysis.slice(0, 500)}
+                      {entry.diagnosis.analysis.length > 500 && '…'}
+                      <hr className="my-2" style={{ borderColor: 'var(--border-warm)' }} />
+                      <div className="text-[11px] mb-1 font-[var(--font-sans)]" style={{ color: 'var(--text-ink-tertiary)' }}>推进：</div>
+                      {entry.diagnosis.push.slice(0, 300)}
+                      {entry.diagnosis.push.length > 300 && '…'}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )
         })}

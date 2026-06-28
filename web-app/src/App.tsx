@@ -106,7 +106,6 @@ function App() {
     setMode(newMode)
     // 切换到我的文字模式时，如果已有分析结果，触发重新分析
     if (newMode === 'my_text' && result && text.trim()) {
-      // 异步重新分析以启用松绿
       hermesDiagnose(text, newMode).then(response => {
         setResult(response)
         if (response.fingerprint) {
@@ -135,11 +134,11 @@ function App() {
   const isMyTextMode = mode === 'my_text'
 
   return (
-    <div className="min-h-screen bg-[#FAFAF9] text-[#1A1A1A]">
+    <div className="min-h-screen bg-[var(--bg-paper)] text-[var(--text-ink)]">
       <div className="max-w-[1200px] mx-auto px-4 py-6 w-full">
         {/* ── 顶部：标题 + 模式滑块 ── */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-          <Header />
+          <Header mode={mode} />
           <ModeSlider mode={mode} onChange={handleModeChange} disabled={isLoading} />
         </div>
 
@@ -173,11 +172,20 @@ function App() {
               )}
 
               {error && (
-                <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <span className="text-red-700 text-sm flex-1">{error}</span>
+                <div className="flex items-center gap-3 p-3 rounded-lg border" style={{
+                  backgroundColor: 'rgba(224, 62, 62, 0.06)',
+                  borderColor: 'rgba(224, 62, 62, 0.2)',
+                }}>
+                  <span className="text-sm flex-1" style={{ color: 'var(--hermes-crimson)' }}>
+                    {error}
+                  </span>
                   <button
                     onClick={handleRetry}
-                    className="px-3 py-1 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded transition-colors"
+                    className="px-3 py-1 text-sm font-medium rounded transition-colors"
+                    style={{
+                      color: 'var(--hermes-crimson)',
+                      backgroundColor: 'rgba(224, 62, 62, 0.1)',
+                    }}
                   >
                     重试
                   </button>
@@ -192,6 +200,7 @@ function App() {
           <div className="w-full lg:w-[55%]">
             <DiagnosisPanel
               diagnosis={showResults ? result.diagnosis : null}
+              sentences={showResults ? result.sentences : null}
               isLoading={isLoading}
               error={error}
               mode={mode}
@@ -209,14 +218,17 @@ function App() {
 
         {/* ── 底部操作（结果展示后） ── */}
         {showResults && (
-          <div className="flex items-center gap-4 mt-6 pt-4 border-t border-gray-200">
+          <div className="flex items-center gap-4 mt-6 pt-4 border-t" style={{ borderColor: 'var(--border-warm)' }}>
             <button
               onClick={handleReset}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+              style={{ color: 'var(--text-ink-secondary)' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-ink)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-ink-secondary)')}
             >
               重新开始
             </button>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs" style={{ color: 'var(--text-ink-tertiary)' }}>
               {result.sentences.length} 句分析 · {result.meta.endpoint}
             </span>
           </div>

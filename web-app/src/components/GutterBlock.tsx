@@ -21,14 +21,19 @@ export default function GutterBlocks({ blocks, maxVisible = 3 }: Props) {
   const hidden = sorted.length - maxVisible
 
   return (
-    <div className="flex items-center gap-0.5" title={blocks.map(b => `${COLOR_MAP[b.color].signal}: ${b.detail}`).join(' · ')}>
+    <div className="flex items-center justify-center gap-[1px]" title={blocks.map(b => `${COLOR_MAP[b.color].signal}: ${b.detail}`).join(' · ')}>
       {visible.map((block, i) => (
-        <ColorDot key={i} color={block.color} signal={COLOR_MAP[block.color].signal} detail={block.detail} />
+        <BookmarkStrip key={i} color={block.color} signal={COLOR_MAP[block.color].signal} detail={block.detail} />
       ))}
       {!expanded && hidden > 0 && (
         <button
           onClick={(e) => { e.stopPropagation(); setExpanded(true) }}
-          className="text-[10px] leading-none text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full w-4 h-4 flex items-center justify-center transition-colors"
+          className="text-[9px] leading-none rounded-full w-4 h-4 flex items-center justify-center transition-colors cursor-pointer font-[var(--font-sans)]"
+          style={{
+            color: 'var(--text-ink-tertiary)',
+            backgroundColor: 'var(--bg-card)',
+            border: '1px solid var(--border-warm)',
+          }}
           title={`展开查看 ${hidden} 个更多信号`}
         >
           +{hidden}
@@ -37,7 +42,8 @@ export default function GutterBlocks({ blocks, maxVisible = 3 }: Props) {
       {expanded && hidden > 0 && (
         <button
           onClick={(e) => { e.stopPropagation(); setExpanded(false) }}
-          className="text-[10px] leading-none text-gray-400 hover:text-gray-600 ml-0.5 transition-colors"
+          className="text-[9px] leading-none ml-0.5 transition-colors cursor-pointer"
+          style={{ color: 'var(--text-ink-tertiary)' }}
           title="折叠"
         >
           −
@@ -47,18 +53,25 @@ export default function GutterBlocks({ blocks, maxVisible = 3 }: Props) {
   )
 }
 
-interface ColorDotProps {
+interface BookmarkStripProps {
   color: HermesColor
   signal: string
   detail: string
 }
 
-function ColorDot({ color, signal, detail }: ColorDotProps) {
+/** 书签条：4px 宽 × 28px 高，圆角矩形 + 同色微发光 */
+function BookmarkStrip({ color, signal, detail }: BookmarkStripProps) {
   const hex = COLOR_MAP[color].hex
   return (
     <span
-      className="inline-block w-3 h-3 rounded-sm cursor-default flex-shrink-0"
-      style={{ backgroundColor: hex }}
+      className="inline-block flex-shrink-0 cursor-default"
+      style={{
+        width: '4px',
+        height: '28px',
+        borderRadius: '2px',
+        backgroundColor: hex,
+        boxShadow: `0 0 3px ${hex}66`,
+      }}
       title={`${signal}：${detail}`}
     />
   )
