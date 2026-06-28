@@ -1,9 +1,9 @@
 # CLAUDE.md — 通用文本透视镜 · 项目导航
 
 > 最后更新：2026-06-28
-> **当前阶段**：Phase 1 启动 — git 仓库已初始化，待 v5.0.1 冒烟测试
-> **上一阶段收尾**：Hermes 全产品设计 v1.2（16 章）完成审阅修订，困难清单已输出，优先级已重排
-> **下一会话起点**：v5.0.1 冒烟测试（7 体裁 × 2 语言覆盖矩阵）
+> **当前阶段**：Phase 1 — Ollama spike 框架就绪（`test/ollama-spike/`），待有 Ollama 环境中运行后评估
+> **上一阶段收尾**：Ollama spike 测试框架搭建 — 14 用例 × 7 体裁 × 2 语言 + 自动化评估脚本 + 判定标准
+> **下一会话起点**：用户在有 Ollama 环境中 `./run-spike.sh` → `node evaluate.mjs` → 若 ≥10/14 通过则进入 Skill 独立仓库提取
 
 ---
 
@@ -151,8 +151,8 @@ one/
 | 项 | 状态 |
 |----|------|
 | 全状态设计规格 | **✅ 已定稿**（[设计文档](docs/superpowers/specs/2026-06-26-full-state-x-y-z-redesign.md)） |
-| Skill v5.0.1 精简 | **✅ 已完成** — v5.0 + 语言一致性规则 + 输出长度约束 + 透镜防泄漏 |
-| 产品 Skill 入口 | [SKILL.md](.claude/skills/writer/SKILL.md)（v5.0.1，~160 行自包含入口） |
+| Skill v5.0.2 铁律扩充 | **✅ 已完成** — v5.0.1 + 铁律 #9 推≠替写 + #10 动作句优先 |
+| 产品 Skill 入口 | [SKILL.md](.claude/skills/writer/SKILL.md)（v5.0.2，11 条铁律，~170 行自包含入口） |
 | 网页版代码 | **✅ v4.0 全状态 + antd**（`web-app/` — Netlify: `eloquent-swan-c78519.netlify.app`） |
 | Edge Function | **✅ v5.0.2 已部署**（v30，单文件合并版，五层条件注入） |
 | 单轮测试 | **✅ 15/15 通过（100%）** |
@@ -161,13 +161,16 @@ one/
 | Git 仓库 | **✅ 已初始化** — 2 commits，227 文件 |
 | 设计-实施间隙 | **✅ 已盘点** — 4 核心问题 + 6 间隙 + 8 阶段困难 + 跨阶段风险，全部记录 |
 | 优先级重排 | **✅ 已定稿** — Phase 1→2→停→评估，Phase 4 延后，Phase 5/6 暂停 |
-| Phase 1 冒烟测试 | **🔜 当前** — v5.0.1：7 体裁 × 2 语言覆盖矩阵 |
+| Phase 1 冒烟测试 | **✅ 已完成** — 14/14 全部通过 (100%) |
+| G-1 焦距引擎规格 | **✅ 已完成** — [docs/tech/focal-engine-spec.md](docs/tech/focal-engine-spec.md) |
+| G-5 动作句模板 | **✅ 已完成** — [docs/tech/action-sentence-templates.md](docs/tech/action-sentence-templates.md)，已集成至 7 个透镜文件 |
 | Supabase DB | **⏸️ 延后** — 原 C.1.1/C.1.2，Phase 4 启动时再做 |
 | 微信生态 | **⏸️ 暂停** — 转为以 Skill 形式优先发布 |
-| Skill 发布 | **🔜 Phase 1** — 冒烟测试 → 铁律 8→10 条 → 提取独立仓库 → GitHub 发布 |
+| Skill 发布 | **🔜 Phase 1** — 冒烟测试 ✅ → 铁律 ✅ → G-5 集成 ✅ → Ollama spike 框架 ✅ → 运行测试 → 提取独立仓库 → GitHub 发布 |
 
-**下一会话起点**：v5.0.1 冒烟测试（7 体裁 × 2 语言覆盖矩阵）
-**Skill v5.0 架构**：[SKILL.md](.claude/skills/writer/SKILL.md) — 体裁预判路由 → 7 透镜按需加载 → X→Y→Z 诊断 → 结构化输出
+**下一会话起点**：在有 Ollama 的环境中运行 `test/ollama-spike/run-spike.sh` → `node evaluate.mjs` → 若 ≥10/14 PASS 则进入 Skill 独立仓库提取
+**Skill v5.0 架构**：[SKILL.md](.claude/skills/writer/SKILL.md) — 体裁预判路由 → 7 透镜按需加载（含焦距优先级与动作句方向库）→ X→Y→Z 诊断 → 结构化输出（Z 层引用 G-5）
+**v5.0.2 变更**：铁律 8→10 条 + G-5 动作句模板集成至 7 透镜 + SKILL.md 输出格式引用 G-5
 **v5.0.1 变更**：语言一致性规则 / 输出长度 ≤500 字 / 透镜英文术语内部参考化 / 输出模板去 X/Y/Z 标签
 **前端状态机**：`input → diagnosing → confirming → correcting → re_diagnosing → diagnosis_shown`（+ `exhausted` 终端态）
 **前端计费规则**：确认状态 → 计费 / 换个角度 → 不计费 / 纠正状态 → 不计费 / 连续 2 轮同状态 → 第 3 轮跳过确认

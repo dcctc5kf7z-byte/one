@@ -1,0 +1,4 @@
+# Ollama spike results are runtime artifacts — keep out of version control
+*.json
+*.md
+!_evaluation.md
