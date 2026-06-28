@@ -1,9 +1,9 @@
 # CLAUDE.md — 通用文本透视镜 · 项目导航
 
 > 最后更新：2026-06-28
-> **当前阶段**：Phase 2 Web 编辑器 MVP — 代码已完成，hermes-diagnose v3 Edge Function 已部署，冒烟测试 ⏸️ 暂停
+> **当前阶段**：Phase 2 Web 编辑器 MVP — 代码 ✅ + Edge Function v6 ✅ + 冒烟 12/14 ✅ + Netlify 部署 ✅，手动流程验证 🔜
 > **上一阶段收尾**：Phase 1 完成 — Skill v5.0.2 + GitHub 发布 + Ollama spike 框架就绪
-> **下一会话起点**：① 跑 v3 冒烟测试 `node test/hermes-smoke.mjs` → ② 若 ≥12/14 通过则 Netlify 部署前端 → ③ 手动流程验证
+> **下一会话起点**：① 手动验证前端+后端联通 → ② commit + push 所有变更 → ③ 决定下一步（Phase 3 写作花园 或 先修 personal 体裁截断）
 
 ---
 
@@ -179,9 +179,9 @@ one/
 | 微信生态 | **⏸️ 暂停** — 转为以 Skill 形式优先发布 |
 | Ollama 可行性 spike | **⏸️ 暂缓** — 测试框架已就绪（`test/ollama-spike/`），Qwen 2.5 14B 待下载完成后运行 |
 | Phase 2 Web 编辑器 | **✅ 代码完成** — 18 文件变更（9 新建 + 3 重写 + 5 修改 + 9 删除），构建通过 |
-| hermes-diagnose Edge Function | **✅ v3 已部署** — safeJSONParse 3 层回退 + 降 token + 颜色规范化 |
-| 冒烟测试 | **⏸️ 暂停** — R2 8/14 通过，v3 修复待验证（3 WORKER_RESOURCE_LIMIT + 3 parse_failed） |
-| Netlify 部署 | **🔜 待做** — 冒烟通过后部署 |
+| hermes-diagnose Edge Function | **✅ v6 已部署** — safeJSONParse 4层回退 + repairTruncatedJSON + max_tokens=4096 |
+| 冒烟测试 | **✅ 12/14 通过 (85.7%)** — personal 体裁 2 项截断为已知限制 |
+| Netlify 部署 | **✅ 已部署** — `eloquent-swan-c78519.netlify.app` |
 | Skill 发布 | **✅ Phase 1 完成** — 冒烟测试 ✅ → 铁律 ✅ → G-5 集成 ✅ → Ollama spike 框架 ✅ → 独立仓库 ✅ → GitHub 发布 ✅ → [text-lens](https://github.com/dcctc5kf7z-byte/text-lens) |
 
 **下一会话起点**：Ollama 下载完成 → 运行 `test/ollama-spike/run-spike.sh && node evaluate.mjs` → 发 `results/_evaluation.md` 给 Claude → 根据结果更新独立仓库 README Ollama 段 → commit + push。无论 spike 通过与否，均进入 Phase 2 Web 编辑器 MVP

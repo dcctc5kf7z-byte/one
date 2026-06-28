@@ -138,42 +138,97 @@ function repairJSON(jsonStr: string): string {
   // 1. 移除 BOM 和首尾空白
   s = s.replace(/^﻿/, "").trim();
 
-  // 2. 修复行内未转义的控制字符（但保留 \n \t \r）
-  // 将真正的裸换行符在字符串值内转义
-  // 策略：找到所有字符串值，修复其中的裸换行符
+  // 2. 移除 JSON 代码块标记
+  s = s.replace(/^```json\s*\n?/i, '').replace(/\n?```\s*$/g, '');
 
-  // 3. 修复中文引号被误解为 JSON 定界符的问题
-  // LLM 可能输出: "text": "他说"你好"。" → 应该是 \"你好\"
-  // 这在 JSON 中是非法的。尝试在字符串值内部修复
-
-  // 4. 修复尾部逗号（常见于数组/对象的最后一个元素后）
+  // 3. 修复尾部逗号（常见于数组/对象的最后一个元素后）
   s = s.replace(/,(\s*[}\]])/g, '$1');
 
-  // 5. 移除 JSON 代码块标记中可能残留的换行
-  s = s.replace(/^```json\s*\n?/, '').replace(/\n?```$/g, '');
+  return s;
+}
+
+/**
+ * 补全被截断的 JSON — 统计开闭括号，补全缺失的闭合符号
+ * 处理 LLM 因 max_tokens 截断导致的 JSON 不完整
+ */
+function repairTruncatedJSON(jsonStr: string): string {
+  let s = jsonStr.trim();
+
+  // 去除末尾可能的不完整片段（最后一个完整 key/value 后的逗号或残片）
+  // 找到最后一个合法的 }, ], " 位置
+  const lastBrace = s.lastIndexOf('}');
+  const lastBracket = s.lastIndexOf(']');
+  const cutPoint = Math.max(lastBrace, lastBracket);
+  if (cutPoint > 0) {
+    s = s.slice(0, cutPoint + 1);
+  }
+
+  // 统计未闭合的括号
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  const stack: string[] = [];
+
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (ch === '\\') {
+      escape = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+
+    if (ch === '{' || ch === '[') {
+      stack.push(ch === '{' ? '}' : ']');
+    } else if (ch === '}' || ch === ']') {
+      if (stack.length > 0 && stack[stack.length - 1] === ch) {
+        stack.pop();
+      }
+      // If mismatch, don't push — likely already broken
+    }
+  }
+
+  // 如果栈非空（在字符串外结束），补全闭合符号
+  if (stack.length > 0 && !inString) {
+    s += stack.reverse().join('');
+  }
 
   return s;
 }
 
 function safeJSONParse(jsonStr: string): Record<string, unknown> | null {
-  // 先尝试直接解析
+  // 层级1：直接解析
   try {
     return JSON.parse(jsonStr) as Record<string, unknown>;
   } catch {
-    // 尝试修复后解析
+    // 层级2：基础修复后解析
     const repaired = repairJSON(jsonStr);
     try {
       return JSON.parse(repaired) as Record<string, unknown>;
     } catch {
-      // 最后尝试：逐行清理可能的非法字符
+      // 层级3：清除控制字符后解析
       try {
-        const cleaned = jsonStr
-          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // 移除控制字符（保留 \n \t \r）
+        const cleaned = repaired
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
           .replace(/\r\n/g, '\n')
           .replace(/\r/g, '\n');
         return JSON.parse(cleaned) as Record<string, unknown>;
       } catch {
-        return null;
+        // 层级4：补全截断括号后解析
+        try {
+          const completed = repairTruncatedJSON(repaired);
+          return JSON.parse(completed) as Record<string, unknown>;
+        } catch {
+          return null;
+        }
       }
     }
   }
@@ -345,7 +400,7 @@ serve(async (req: Request) => {
         },
         buildBody: (sys: string, msg: string) => ({
           model: "claude-opus-4-8",
-          max_tokens: 3072,
+          max_tokens: 4096,
           system: sys,
           messages: [{ role: "user", content: msg }],
           temperature: 0.7,
@@ -363,7 +418,7 @@ serve(async (req: Request) => {
         },
         buildBody: (sys: string, msg: string) => ({
           model: "gpt-4o",
-          max_tokens: 3072,
+          max_tokens: 4096,
           temperature: 0.7,
           messages: [
             { role: "system", content: sys },
@@ -383,7 +438,7 @@ serve(async (req: Request) => {
         },
         buildBody: (sys: string, msg: string) => ({
           model: "gpt-4o-mini",
-          max_tokens: 3072,
+          max_tokens: 4096,
           temperature: 0.7,
           messages: [
             { role: "system", content: sys },
@@ -403,7 +458,7 @@ serve(async (req: Request) => {
         },
         buildBody: (sys: string, msg: string) => ({
           model: "deepseek-chat",
-          max_tokens: 3072,
+          max_tokens: 4096,
           temperature: 0.7,
           messages: [
             { role: "system", content: sys },
@@ -456,7 +511,7 @@ serve(async (req: Request) => {
 
     // ── 解析 JSON 响应 ──
     const jsonStr = extractJSON(rawOutput);
-    const parsed = safeJSONParse(jsonStr);
+    let parsed = safeJSONParse(jsonStr);
     if (!parsed) {
       console.error(`[Hermes] JSON parse failed. Raw (first 500): ${rawOutput.slice(0, 500)}`);
       return new Response(
