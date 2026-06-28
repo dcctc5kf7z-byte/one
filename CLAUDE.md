@@ -1,9 +1,9 @@
 # CLAUDE.md — 通用文本透视镜 · 项目导航
 
 > 最后更新：2026-06-28
-> **当前阶段**：Phase 1 — 独立仓库已提取（`c:/Users/zhong/Desktop/text-lens/`），Ollama spike + GitHub 发布待用户执行
-> **上一阶段收尾**：Skill v5.0.2 提取为独立 Git 仓库 — 20 文件，2,748 行，MIT，含完整 README
-> **下一会话起点**：独立仓库已提取（`c:/Users/zhong/Desktop/text-lens/`）。用户执行：① 有 Ollama 环境运行 spike → ② 创建 GitHub repo 并推送独立仓库
+> **当前阶段**：Phase 1 收尾 — 独立仓库已发布 GitHub（[text-lens](https://github.com/dcctc5kf7z-byte/text-lens)），Ollama spike ⏸️ 暂缓（下载中）
+> **上一阶段收尾**：Skill v5.0.2 提取为独立 Git 仓库并发布 — 20 文件，2,748 行，MIT，含完整 README
+> **下一会话起点**：① Ollama 下载完成 → 运行 `test/ollama-spike/run-spike.sh && node evaluate.mjs` → 根据结果更新 README → ② 若 spike 通过/不通过均进入 Phase 2 Web 编辑器 MVP
 
 ---
 
@@ -13,7 +13,7 @@
 
 **产品 System Prompt**：[docs/product/产品MVP方案-v3.md](docs/product/产品MVP方案-v3.md)（v3.1 三层重构·最新）
 
-**Skill 入口**：[.claude/skills/writer/SKILL.md](.claude/skills/writer/SKILL.md)（v5.0.1 通用文本透视·精简完成）
+**Skill 入口**：[.claude/skills/writer/SKILL.md](.claude/skills/writer/SKILL.md)（v5.0.2 通用文本透视·11 条铁律）
 
 ---
 
@@ -35,7 +35,9 @@ one/
 │   │   ├── 国内环境适配方案.md           # 国内部署适配
 │   │   └── 小白变现第一步.md            # 入门指南
 │   ├── tech/                           # 技术方案
-│   │   └── architecture.md             # 技术架构文档
+│   │   ├── architecture.md             # 技术架构文档
+│   │   ├── focal-engine-spec.md        # G-1 六维焦距分析引擎规格
+│   │   └── action-sentence-templates.md # G-5 L4 动作句生成模板
 │   ├── design/                         # 设计规划
 │   │   └── ui-design.md                # UI/UX 设计规范
 │   ├── execution/                      # 执行步骤
@@ -74,16 +76,25 @@ one/
 │       ├── index.ts                     # ★ Edge Function 入口（v5.0.2 五层条件注入·单文件合并·已部署 v30）
 │       ├── layers.ts                    # L0–L4 Prompt 常量 + 组装（源码参考）
 │       └── engine.ts                    # Engine 层：预分类 + 条件注入 + 状态追踪（源码参考）
+├── handoffs/                            # 会话交接日志
+│   └── 2026-06-28.md                    # Phase 1 收尾 handoff
 ├── test/                                # 测试脚本
 │   ├── diagnose.sh                      # 五状态单轮测试（15 用例：5 状态 × 3 段文字）
 │   ├── flow.sh                          # 状态流转多轮测试（13 条流转路径）
-│   └── deploy.sh                        # Supabase Edge Function 一键部署（含冒烟测试）
+│   ├── deploy.sh                        # Supabase Edge Function 一键部署（含冒烟测试）
+│   └── ollama-spike/                    # Ollama 可行性 spike（Qwen 2.5 14B vs Claude）
+│       ├── README.md                    # 方法+标准+环境准备
+│       ├── test-texts.json              # 14 条测试用例
+│       ├── run-spike.sh                 # Bash wrapper
+│       ├── run-spike.mjs                # Node.js 测试执行器
+│       ├── evaluate.mjs                 # 7 维自动评估脚本
+│       └── results/                     # 运行时结果（gitignore）
 ├── .claude/                            # Claude 配置
 │   ├── settings.json                   # 权限和钩子配置
 │   └── skills/writer/                  # ★ /text-lens Skill（v5.0 通用文本透视）
 │       ├── SKILL.md                    # 入口（体裁预判路由 + X→Y→Z 模型 + 铁律）
 │       ├── iron-laws.md                # 铁律详细展开
-│       ├── lenses/                     # ★ 7 种体裁分析透镜（按需加载）
+│       ├── lenses/                     # ★ 7 种体裁分析透镜（v1.1，含焦距优先级与动作句方向库）
 │       │   ├── poetic.md               # 诗性/意象文本
 │       │   ├── narrative.md            # 叙事/故事文本
 │       │   ├── argument.md             # 论述/观点文本
@@ -166,9 +177,10 @@ one/
 | G-5 动作句模板 | **✅ 已完成** — [docs/tech/action-sentence-templates.md](docs/tech/action-sentence-templates.md)，已集成至 7 个透镜文件 |
 | Supabase DB | **⏸️ 延后** — 原 C.1.1/C.1.2，Phase 4 启动时再做 |
 | 微信生态 | **⏸️ 暂停** — 转为以 Skill 形式优先发布 |
+| Ollama 可行性 spike | **⏸️ 暂缓** — 测试框架已就绪（`test/ollama-spike/`），Qwen 2.5 14B 待下载完成后运行 |
 | Skill 发布 | **✅ Phase 1 完成** — 冒烟测试 ✅ → 铁律 ✅ → G-5 集成 ✅ → Ollama spike 框架 ✅ → 独立仓库 ✅ → GitHub 发布 ✅ → [text-lens](https://github.com/dcctc5kf7z-byte/text-lens) |
 
-**下一会话起点**：在有 Ollama 的环境中运行 `test/ollama-spike/run-spike.sh` → `node evaluate.mjs` → 若 ≥10/14 PASS 则进入 Skill 独立仓库提取
+**下一会话起点**：Ollama 下载完成 → 运行 `test/ollama-spike/run-spike.sh && node evaluate.mjs` → 发 `results/_evaluation.md` 给 Claude → 根据结果更新独立仓库 README Ollama 段 → commit + push。无论 spike 通过与否，均进入 Phase 2 Web 编辑器 MVP
 **Skill v5.0 架构**：[SKILL.md](.claude/skills/writer/SKILL.md) — 体裁预判路由 → 7 透镜按需加载（含焦距优先级与动作句方向库）→ X→Y→Z 诊断 → 结构化输出（Z 层引用 G-5）
 **v5.0.2 变更**：铁律 8→10 条 + G-5 动作句模板集成至 7 透镜 + SKILL.md 输出格式引用 G-5
 **v5.0.1 变更**：语言一致性规则 / 输出长度 ≤500 字 / 透镜英文术语内部参考化 / 输出模板去 X/Y/Z 标签
