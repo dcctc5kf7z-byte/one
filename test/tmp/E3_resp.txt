@@ -1,0 +1,2 @@
+{"diagnosis":"我注意到你现在是空虚——对吗？\n\n文字是空的，人也是空的。\"没有想法\"四个字底下，是感知现在不在你身体里。\n\n闭上眼睛想30秒——你身体哪个地方最紧？","meta":{"endpoint":"claude-opus-4-8 (灵眸)","temperature":0.7,"sessionRound":0,"retry":0,"conversationId":"8f1a2b56-00f9-4dff-ba89-6ee4df6e9f14","preClassifiedState":"空虚","layers":["L0","L1","L2"],"estimatedTokens":1320}}
+HTTP:200

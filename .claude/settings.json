@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sI --connect-timeout 10 https://ghproxy.com)",
+      "Bash(curl -sI --connect-timeout 10 https://mirror.ghproxy.com)",
+      "Bash(curl -sI --connect-timeout 10 https://gitclone.com)",
+      "Bash(ls \"$HOME/.anthropics-skills-temp\" 2>&1 && echo \"CLONE SUCCESS\" || echo \"CLONE FAILED\")",
+      "Read(//c/Users/zhong/.anthropics-skills-temp/**)",
+      "Bash(npx skills *)",
+      "Bash(rm -rf \"$HOME/.anthropics-skills-temp\")",
+      "Bash(git clone *)",
+      "Bash(find /c/Users/zhong -maxdepth 5 -type f -name \"*草稿*\" 2>/dev/null | head -20)",
+      "Read(//c/Users/zhong/**)",
+      "Bash(ls -la \"/c/Users/zhong/Desktop/会计/aaa/小说/\")",
+      "Read(//c/Users/zhong/Desktop/会计/aaa/小说//**)",
+      "Bash(ls -la \"/c/Users/zhong/Documents/Obsidian Vault/\")",
+      "Read(//c/Users/zhong/Documents/Obsidian Vault//**)",
+      "Bash(python3 -c ' *)",
+      "Bash(iconv -f utf-8 -t utf-8)",
+      "Bash(mkdir -p \"c:/Users/zhong/Desktop/one/.claude/skills/writer/personas\" \"c:/Users/zhong/Desktop/one/.claude/skills/writer/patterns\" \"c:/Users/zhong/Desktop/one/.claude/skills/writer/reference\")",
+      "Edit(/.claude/skills/writer/**)",
+      "Bash(mkdir -p \"c:/Users/zhong/Desktop/one/.claude/skills/writer/profile\")",
+      "Bash(mv \"c:/Users/zhong/Desktop/one/.claude/skills/writer/reference/vocabulary.md\" \"c:/Users/zhong/Desktop/one/.claude/skills/writer/profile/vocabulary.md\")",
+      "Bash(mv \"c:/Users/zhong/Desktop/one/.claude/skills/writer/reference/voice-guide.md\" \"c:/Users/zhong/Desktop/one/.claude/skills/writer/profile/voice-guide.md\")",
+      "Bash(rm -f \"c:/Users/zhong/Desktop/one/.claude/skills/writer/patterns/signals.md\" \"c:/Users/zhong/Desktop/one/.claude/skills/writer/patterns/dead-ends.md\" \"c:/Users/zhong/Desktop/one/.claude/skills/writer/patterns/workflow.md\" \"c:/Users/zhong/Desktop/one/.claude/skills/writer/patterns/diagnoses.md\" \"c:/Users/zhong/Desktop/one/.claude/skills/writer/framework/cognitive-functions.md\" \"c:/Users/zhong/Desktop/one/.claude/skills/writer/framework/archetypes.md\" \"c:/Users/zhong/Desktop/one/.claude/skills/writer/framework/philosophical-lens.md\")",
+      "Bash(rmdir \"c:/Users/zhong/Desktop/one/.claude/skills/writer/patterns\" \"c:/Users/zhong/Desktop/one/.claude/skills/writer/framework\")",
+      "Bash(curl -s -L -w \"\\\\n---\\\\nHTTP: %{http_code} | final URL: %{url_effective}\" -o /tmp/page.html \"https://write-diagnose-dp9so6gr4quq.edgeone.cool?eo_token=21b068954e1f7e68bdaafa943cff1817&eo_time=1782444448\")",
+      "Read(//tmp/**)",
+      "Bash(curl -s -L -o /tmp/test_page.html -w \"HTTP: %{http_code} | size: %{size_download} | final: %{url_effective}\" \"https://write-diagnose-cx176xl0.edgeone.cool/\")",
+      "Bash(git config *)",
+      "Bash(gh auth *)",
+      "Bash(git push *)",
+      "Bash(curl -s -X POST \"https://gitee.com/api/v5/repos/zhongs-bell-harmony/write-diagnose/pages/builds\" -H \"Content-Type: application/json\" -d '{\"branch\":\"main\"}')",
+      "Bash(curl -s -X PUT \"https://gitee.com/api/v5/repos/zhongs-bell-harmony/write-diagnose/pages\" -H \"Content-Type: application/json\" -d '{\"branch\":\"main\",\"build_dir\":\"\"}')",
+      "Bash(git remote *)",
+      "Bash(curl -s -o /tmp/gitee_test.html -w \"HTTP: %{http_code} | size: %{size_download}\" \"https://zhongs-bell-harmony.gitee.io/write-diagnose/\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\zhong\\.anthropics-skills-temp",
+      "c:\\Users\\zhong\\Desktop\\one\\.claude\\skills\\writer"
+    ]
+  }
+}

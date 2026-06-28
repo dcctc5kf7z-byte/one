@@ -1,0 +1,34 @@
+# 用户认知配置
+# 此文件由用户与AI协作填写。未填写的字段由AI在对话中通过感知动态推断。
+
+cognitive_stack:
+  dominant: null       # 主导功能（如 Ni、Ti、Fi 等）
+  auxiliary: null      # 辅助功能
+  tertiary: null       # 第三功能
+  inferior: null       # 劣势功能
+
+archetype_tendencies:
+  primary_danger: null       # 最容易陷入的原型层次陷阱（persona/shadow/anima-animus/self）
+  persona_strength: null     # 面具层的优势
+  anima_projection: null     # Anima/Animus投射倾向描述
+
+writing_modes:
+  - philosophical    # 思辨体
+  - narrative        # 叙事体
+  - prose_poetry     # 散文诗体
+
+philosophical_lens_preference:
+  primary: null      # 最常用的哲学透镜（epistemology/ontology/phenomenology/teleology）
+  blind_spot: null   # 最容易忽略的哲学透镜
+
+push_tolerance: medium   # 推阻耐受度：low（易触发制高点）/ medium / high（允许更多顺势推动）
+
+# 以下为当前用户的蒸馏数据（来自2026-06-23画像分析）
+# 新用户使用技能时，此部分由对话感知动态填充
+current_user_distillation:
+  cognitive_signature: "Ni-Ti 绞合型——概念驱动的体系构建者，通过否定逼近真理，信任顿悟式连接"
+  dead_end_patterns:
+    - "否定螺旋（Ni-Ti loop：不断否定但不敢落地）"
+    - "判断悬置（Ti过度：用可能性替代确定性）"
+    - "隐喻漂移（Ne爆发：意象离心力）"
+  push_sweet_spot: "先用他的概念体系理解他的方向，然后在因果链或价值转换层面找到松动点，从那个点推进"

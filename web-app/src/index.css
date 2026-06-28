@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+/* Ant Design 接管 body 背景和字体，仅保留 margin 重置 */
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Loading skeleton pulse animation */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
+/* Markdown content styling — 保留 react-markdown 渲染样式 */
+.diagnosis-content h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 24px;
+  margin-bottom: 8px;
+  color: #1A1A1A;
+}
+
+.diagnosis-content h3 {
+  font-size: 15px;
+  font-weight: 500;
+  margin-top: 16px;
+  margin-bottom: 4px;
+  color: #525252;
+}
+
+.diagnosis-content p {
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.diagnosis-content ul {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 12px;
+}
+
+.diagnosis-content ul li {
+  padding-left: 16px;
+  position: relative;
+  margin-bottom: 6px;
+  line-height: 1.6;
+}
+
+.diagnosis-content ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #1A1A1A;
+}
+
+.diagnosis-content ol {
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+
+.diagnosis-content ol li {
+  margin-bottom: 6px;
+  line-height: 1.6;
+}
+
+.diagnosis-content strong {
+  font-weight: 500;
+  color: #1A1A1A;
+}
+
+.diagnosis-content blockquote {
+  border-left: 2px solid #0D0D0D;
+  padding-left: 16px;
+  margin: 12px 0;
+  color: #525252;
+  font-size: 13px;
+}
