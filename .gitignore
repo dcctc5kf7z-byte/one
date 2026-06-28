@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+.vscode/settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Supabase
+supabase/.temp/
+
+# Test artifacts
+test/temp_file
+test/temp_*
+
+# Claude
+.claude/cache/
+.claude/worktrees/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Misc
+*.tmp
+.turbo/
