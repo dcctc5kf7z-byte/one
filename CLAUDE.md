@@ -1,7 +1,7 @@
 # CLAUDE.md — 通用文本透视镜 · 项目导航
 
 > 最后更新：2026-06-28
-> **当前阶段**：Phase 2 Web 编辑器 MVP — 代码 ✅ + Edge Function v6 ✅ + 冒烟 12/14 ✅ + Netlify 部署 ✅，手动流程验证 🔜
+> **当前阶段**：Phase 2 前端重设计 ✅ — 「温墨·纸本」风格 + 六色信号视觉主角 + Netlify 部署 ✅，手动流程验证 🔜
 > **上一阶段收尾**：Phase 1 完成 — Skill v5.0.2 + GitHub 发布 + Ollama spike 框架就绪
 > **下一会话起点**：① 手动验证前端+后端联通 → ② commit + push 所有变更 → ③ 决定下一步（Phase 3 写作花园 或 先修 personal 体裁截断）
 
