@@ -3,7 +3,7 @@
 > 最后更新：2026-06-28
 > **当前阶段**：Phase 2 前端重设计 ✅ — 「温墨·纸本」风格 + 六色信号视觉主角 + Netlify 部署 ✅，手动流程验证 🔜
 > **上一阶段收尾**：Phase 1 完成 — Skill v5.0.2 + GitHub 发布 + Ollama spike 框架就绪
-> **下一会话起点**：① 手动验证前端+后端联通 → ② commit + push 所有变更 → ③ 决定下一步（Phase 3 写作花园 或 先修 personal 体裁截断）
+> **下一会话起点**：手动验证前端+后端联通 → push 所有 commit 到 remote → 决定下一步（先修 personal 体裁截断 或 Phase 3 写作花园）
 
 ---
 
@@ -53,35 +53,39 @@ one/
 │           └── layer-4-fault-handling.md         # L4 故障处理 (~2000t)
 ├── web-app/                             # Web App 源码（React 19 + TypeScript + Tailwind CSS 4 + Vite 8）
 │   ├── src/
-│   │   ├── App.tsx                      # ★ 前端状态机（7 AppPhase：input → diagnosing → confirming → correcting → re_diagnosing → diagnosis_shown + exhausted）
+│   │   ├── App.tsx                      # ★ 前端状态机（3-phase：idle → analyzing → results_shown + orthogonal mode）
 │   │   ├── lib/
-│   │   │   ├── api.ts                   # API 层（DiagnoseResponse + conversationId + correctedState）
-│   │   │   ├── types.ts                 # 全状态类型（WritingState / AppPhase / DiagnosisMeta / ParsedConfirmation / HistoryEntry）
-│   │   │   └── state-parser.ts          # 状态确认句解析（正则匹配 + 五状态映射）
+│   │   │   ├── api.ts                   # API 层（hermesDiagnose + 旧 diagnose 兼容）
+│   │   │   ├── types.ts                 # 类型定义（新 Hermes 类型 + 旧 v3.1 类型分界线标注）
+│   │   │   ├── hermes-types.ts          # ★ Hermes 6 色信号 / ViewMode / SentenceAnalysis / GutterBlock / HermesHistoryEntry / FingerprintData
+│   │   │   └── FingerprintManager.ts    # localStorage 指纹 CRUD + 松绿阈值 + 导入/导出
 │   │   └── components/
-│   │       ├── Header.tsx               # 标题 "用文字看清自己"
-│   │       ├── InputPanel.tsx           # 无字数限制，五状态通用 placeholder
-│   │       ├── DiagnoseButton.tsx       # 仅 loading 时禁用
-│   │       ├── DiagnosticReport.tsx     # 按 AppPhase 切换展示
-│   │       ├── StateConfirmation.tsx    # "我注意到你现在是**状态**——对吗？" + [确认]/[不对]
-│   │       ├── StatePicker.tsx          # 五状态选择面板（纠正用）
-│   │       ├── ActionBar.tsx            # [继续写] + [不满意，换个角度]（重试计数/上限）
-│   │       ├── QuotaBadge.tsx           # "今日剩余 N 次"
-│   │       ├── PaymentWall.tsx          # 配额耗尽替代 UI
-│   │       ├── HistoryPanel.tsx         # 可折叠诊断记录
-│   │       ├── PrivacyNotice.tsx        # 隐私声明
-│   │       ├── Footer.tsx              # 页脚
-│   │       └── RetryButton.tsx          # ❌ 已删除（被 ActionBar 取代）
-│   └── supabase/functions/anthropic-diagnose/
-│       ├── index.ts                     # ★ Edge Function 入口（v5.0.2 五层条件注入·单文件合并·已部署 v30）
-│       ├── layers.ts                    # L0–L4 Prompt 常量 + 组装（源码参考）
-│       └── engine.ts                    # Engine 层：预分类 + 条件注入 + 状态追踪（源码参考）
+│   │       ├── Header.tsx               # 标题 + 笔图标 + ColorBar 嵌入（衬线字体）
+│   │       ├── EditorWithGutter.tsx     # ★ textarea + 左侧 48px gutter + 笔记本横线 + 装订线 + 主导色渐变边
+│   │       ├── GutterBlock.tsx          # ★ 书签条（4×28px 圆角矩形 + 同色微发光）+ 紧迫度排序 + "+N" 展开
+│   │       ├── ColorBar.tsx             # 常驻六色圆点条（替换弹窗 ColorLegend），hover 展开详情
+│   │       ├── SignalBar.tsx            # 诊断面板顶部信号频率分布横向色条（按紧迫度排序）
+│   │       ├── ModeSlider.tsx           # 两态滑动切换（透视模式 ↔ 我的文字），颜色关联（steel_blue ↔ pine_green）
+│   │       ├── AnalyzeButton.tsx        # "透视这段文字"，墨水印章风格（暖深棕底 + 笔图标 + 加载 spinner）
+│   │       ├── DiagnosisPanel.tsx       # ★ 诊断结果面板：顶部 3px 主导色条 + SignalBar + 两节颜色染边（steel_blue / crimson/amber）+ Markdown 渲染
+│   │       ├── HistoryPanel.tsx         # 可折叠诊断记录 + 左侧颜色光谱条 + 指纹导入/导出
+│   │       ├── PrivacyNotice.tsx        # 隐私声明（脚注风格）
+│   │       └── Footer.tsx              # 页脚（暖色分隔线 + italic 文字 + 松绿指纹计数）
+│   └── supabase/functions/
+│       ├── anthropic-diagnose/          # 旧 v3.1 Edge Function（v5.0.2 五层条件注入·已部署 v30，保留兼容）
+│       │   ├── index.ts                 # 入口（单文件合并版）
+│       │   ├── layers.ts                # L0–L4 Prompt 常量（源码参考）
+│       │   └── engine.ts                # Engine 层（源码参考）
+│       └── hermes-diagnose/             # ★ Hermes Edge Function（v6 已部署，结构化 JSON 输出）
+│           └── index.ts                 # ~300 行，Hermes System Prompt + safeJSONParse 4层回退 + 灵眸→API2D 降级链
 ├── handoffs/                            # 会话交接日志
 │   └── 2026-06-28.md                    # Phase 1 收尾 handoff
 ├── test/                                # 测试脚本
 │   ├── diagnose.sh                      # 五状态单轮测试（15 用例：5 状态 × 3 段文字）
 │   ├── flow.sh                          # 状态流转多轮测试（13 条流转路径）
 │   ├── deploy.sh                        # Supabase Edge Function 一键部署（含冒烟测试）
+│   ├── hermes-smoke.mjs                 # Hermes 冒烟测试（Node.js，14 文本，7 体裁 × 2 语言）
+│   ├── hermes-smoke.sh                  # Hermes 冒烟 Bash wrapper
 │   └── ollama-spike/                    # Ollama 可行性 spike（Qwen 2.5 14B vs Claude）
 │       ├── README.md                    # 方法+标准+环境准备
 │       ├── test-texts.json              # 14 条测试用例
@@ -164,33 +168,34 @@ one/
 | 全状态设计规格 | **✅ 已定稿**（[设计文档](docs/superpowers/specs/2026-06-26-full-state-x-y-z-redesign.md)） |
 | Skill v5.0.2 铁律扩充 | **✅ 已完成** — v5.0.1 + 铁律 #9 推≠替写 + #10 动作句优先 |
 | 产品 Skill 入口 | [SKILL.md](.claude/skills/writer/SKILL.md)（v5.0.2，11 条铁律，~170 行自包含入口） |
-| 网页版代码 | **✅ v4.0 全状态 + antd**（`web-app/` — Netlify: `eloquent-swan-c78519.netlify.app`） |
-| Edge Function | **✅ v5.0.2 已部署**（v30，单文件合并版，五层条件注入） |
-| 单轮测试 | **✅ 15/15 通过（100%）** |
-| 流转测试 | **✅ 13/13 全部可达** |
+| 网页版代码 | **✅ Phase 2 Hermes**（`web-app/` — 「温墨·纸本」风格，纯 Tailwind，Netlify: `eloquent-swan-c78519.netlify.app`） |
+| Edge Function (hermes-diagnose) | **✅ v6 已部署** — safeJSONParse 4层回退 + repairTruncatedJSON + max_tokens=4096 |
+| Edge Function (anthropic-diagnose) | **✅ v5.0.2 保留兼容**（v30，单文件合并版，五层条件注入） |
+| Hermes 冒烟测试 | **✅ 12/14 通过 (85.7%)** — personal 体裁 2 项截断为已知限制 |
+| 单轮测试 (旧) | **✅ 15/15 通过（100%）** |
+| 流转测试 (旧) | **✅ 13/13 全部可达** |
 | Hermes 设计文档 | **✅ v1.2 已定稿**（[16 章完整设计](docs/superpowers/specs/2026-06-28-hermes-full-product-design.md)） |
-| Git 仓库 | **✅ 已初始化** — 2 commits，227 文件 |
-| 设计-实施间隙 | **✅ 已盘点** — 4 核心问题 + 6 间隙 + 8 阶段困难 + 跨阶段风险，全部记录 |
+| 前端重设计 | **✅ 已完成** — 15 文件变更，「温墨·纸本」风格，9 策略六色信号视觉主角 |
+| Netlify 部署 | **✅ 已部署** — `eloquent-swan-c78519.netlify.app` |
+| Git 仓库 | **✅ 9 commits**，working tree clean |
+| 设计-实施间隙 | **✅ 已盘点** — 4 核心问题 + 6 间隙 + 8 阶段困难 + 跨阶段风险，G-1/G-5 已完成 |
 | 优先级重排 | **✅ 已定稿** — Phase 1→2→停→评估，Phase 4 延后，Phase 5/6 暂停 |
-| Phase 1 冒烟测试 | **✅ 已完成** — 14/14 全部通过 (100%) |
 | G-1 焦距引擎规格 | **✅ 已完成** — [docs/tech/focal-engine-spec.md](docs/tech/focal-engine-spec.md) |
 | G-5 动作句模板 | **✅ 已完成** — [docs/tech/action-sentence-templates.md](docs/tech/action-sentence-templates.md)，已集成至 7 个透镜文件 |
 | Supabase DB | **⏸️ 延后** — 原 C.1.1/C.1.2，Phase 4 启动时再做 |
 | 微信生态 | **⏸️ 暂停** — 转为以 Skill 形式优先发布 |
 | Ollama 可行性 spike | **⏸️ 暂缓** — 测试框架已就绪（`test/ollama-spike/`），Qwen 2.5 14B 待下载完成后运行 |
-| Phase 2 Web 编辑器 | **✅ 代码完成** — 18 文件变更（9 新建 + 3 重写 + 5 修改 + 9 删除），构建通过 |
-| hermes-diagnose Edge Function | **✅ v6 已部署** — safeJSONParse 4层回退 + repairTruncatedJSON + max_tokens=4096 |
-| 冒烟测试 | **✅ 12/14 通过 (85.7%)** — personal 体裁 2 项截断为已知限制 |
-| Netlify 部署 | **✅ 已部署** — `eloquent-swan-c78519.netlify.app` |
 | Skill 发布 | **✅ Phase 1 完成** — 冒烟测试 ✅ → 铁律 ✅ → G-5 集成 ✅ → Ollama spike 框架 ✅ → 独立仓库 ✅ → GitHub 发布 ✅ → [text-lens](https://github.com/dcctc5kf7z-byte/text-lens) |
+| 手动流程验证 | **🔜 待做** — 访问 Netlify 站点确认前端+后端联通 |
 
-**下一会话起点**：Ollama 下载完成 → 运行 `test/ollama-spike/run-spike.sh && node evaluate.mjs` → 发 `results/_evaluation.md` 给 Claude → 根据结果更新独立仓库 README Ollama 段 → commit + push。无论 spike 通过与否，均进入 Phase 2 Web 编辑器 MVP
+**下一会话起点**：手动验证前端+后端联通 → push 所有 commit 到 remote → 决定下一步（先修 personal 体裁截断 或 Phase 3 写作花园）
 **Skill v5.0 架构**：[SKILL.md](.claude/skills/writer/SKILL.md) — 体裁预判路由 → 7 透镜按需加载（含焦距优先级与动作句方向库）→ X→Y→Z 诊断 → 结构化输出（Z 层引用 G-5）
-**v5.0.2 变更**：铁律 8→10 条 + G-5 动作句模板集成至 7 透镜 + SKILL.md 输出格式引用 G-5
+**v5.0.2 变更**：铁律 9→11 条 + G-5 动作句模板集成至 7 透镜 + SKILL.md 输出格式引用 G-5
 **v5.0.1 变更**：语言一致性规则 / 输出长度 ≤500 字 / 透镜英文术语内部参考化 / 输出模板去 X/Y/Z 标签
-**前端状态机**：`input → diagnosing → confirming → correcting → re_diagnosing → diagnosis_shown`（+ `exhausted` 终端态）
-**前端计费规则**：确认状态 → 计费 / 换个角度 → 不计费 / 纠正状态 → 不计费 / 连续 2 轮同状态 → 第 3 轮跳过确认
+**前端状态机（Hermes Phase 2）**：`idle → analyzing → results_shown`（3-phase + orthogonal mode: perspective ↔ my_text）
+**前端设计系统**：「温墨·纸本」(Warm Ink & Paper) — 暖纸底 `#F5F0E1` + 墨色字 `#2C2416` + Source Serif 4/Inter 字体 + 纸纹理 CSS SVG noise + 笔记本横线 + 六色信号 9 策略贯穿 UI
 **暂缓清单**：见 [devlog/2026-06-26.md](devlog/2026-06-26.md) DEFER-01 ~ DEFER-08
 **Token 预算（Skill）**：最小 ~600t（通用透镜）/ 典型 ~1,200t（一体裁透镜）/ 最坏 ~3,000t（多透镜并行 + 深层分析）
 **API 降级链**：🦾 Claude Opus 4.8 (灵眸·Anthropic 原生) → GPT-4o → GPT-4o-mini → DeepSeek-V3 → GPT-3.5（Tier 2-5 通过 API2D `oa.api2d.net`）
 **国内 Claude 通道**：灵芽 `api.lingyaai.cn` ⭐ / 灵眸AI `api.lmuai.com` ⭐（均已调研，灵眸已集成到 Edge Function v5.0.2，max 分组后可用率 100%）
+**Hermes 冒烟测试**：12/14 通过 (85.7%)，personal 体裁 2 项 JSON 截断为 Supabase 免费层 + max_tokens=4096 已知限制
