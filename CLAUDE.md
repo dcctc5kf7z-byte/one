@@ -1,9 +1,9 @@
 # CLAUDE.md — 通用文本透视镜 · 项目导航
 
 > 最后更新：2026-06-28
-> **当前阶段**：Phase 1 收尾 — 独立仓库已发布 GitHub（[text-lens](https://github.com/dcctc5kf7z-byte/text-lens)），Ollama spike ⏸️ 暂缓（下载中）
-> **上一阶段收尾**：Skill v5.0.2 提取为独立 Git 仓库并发布 — 20 文件，2,748 行，MIT，含完整 README
-> **下一会话起点**：① Ollama 下载完成 → 运行 `test/ollama-spike/run-spike.sh && node evaluate.mjs` → 根据结果更新 README → ② 若 spike 通过/不通过均进入 Phase 2 Web 编辑器 MVP
+> **当前阶段**：Phase 2 Web 编辑器 MVP — 代码已完成，hermes-diagnose v3 Edge Function 已部署，冒烟测试 ⏸️ 暂停
+> **上一阶段收尾**：Phase 1 完成 — Skill v5.0.2 + GitHub 发布 + Ollama spike 框架就绪
+> **下一会话起点**：① 跑 v3 冒烟测试 `node test/hermes-smoke.mjs` → ② 若 ≥12/14 通过则 Netlify 部署前端 → ③ 手动流程验证
 
 ---
 
@@ -178,6 +178,10 @@ one/
 | Supabase DB | **⏸️ 延后** — 原 C.1.1/C.1.2，Phase 4 启动时再做 |
 | 微信生态 | **⏸️ 暂停** — 转为以 Skill 形式优先发布 |
 | Ollama 可行性 spike | **⏸️ 暂缓** — 测试框架已就绪（`test/ollama-spike/`），Qwen 2.5 14B 待下载完成后运行 |
+| Phase 2 Web 编辑器 | **✅ 代码完成** — 18 文件变更（9 新建 + 3 重写 + 5 修改 + 9 删除），构建通过 |
+| hermes-diagnose Edge Function | **✅ v3 已部署** — safeJSONParse 3 层回退 + 降 token + 颜色规范化 |
+| 冒烟测试 | **⏸️ 暂停** — R2 8/14 通过，v3 修复待验证（3 WORKER_RESOURCE_LIMIT + 3 parse_failed） |
+| Netlify 部署 | **🔜 待做** — 冒烟通过后部署 |
 | Skill 发布 | **✅ Phase 1 完成** — 冒烟测试 ✅ → 铁律 ✅ → G-5 集成 ✅ → Ollama spike 框架 ✅ → 独立仓库 ✅ → GitHub 发布 ✅ → [text-lens](https://github.com/dcctc5kf7z-byte/text-lens) |
 
 **下一会话起点**：Ollama 下载完成 → 运行 `test/ollama-spike/run-spike.sh && node evaluate.mjs` → 发 `results/_evaluation.md` 给 Claude → 根据结果更新独立仓库 README Ollama 段 → commit + push。无论 spike 通过与否，均进入 Phase 2 Web 编辑器 MVP
