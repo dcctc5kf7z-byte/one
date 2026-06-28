@@ -1,9 +1,9 @@
 # CLAUDE.md — 通用文本透视镜 · 项目导航
 
 > 最后更新：2026-06-28
-> **当前阶段**：Phase 1 — Ollama spike 框架就绪（`test/ollama-spike/`），待有 Ollama 环境中运行后评估
-> **上一阶段收尾**：Ollama spike 测试框架搭建 — 14 用例 × 7 体裁 × 2 语言 + 自动化评估脚本 + 判定标准
-> **下一会话起点**：用户在有 Ollama 环境中 `./run-spike.sh` → `node evaluate.mjs` → 若 ≥10/14 通过则进入 Skill 独立仓库提取
+> **当前阶段**：Phase 1 — 独立仓库已提取（`c:/Users/zhong/Desktop/text-lens/`），Ollama spike + GitHub 发布待用户执行
+> **上一阶段收尾**：Skill v5.0.2 提取为独立 Git 仓库 — 20 文件，2,748 行，MIT，含完整 README
+> **下一会话起点**：独立仓库已提取（`c:/Users/zhong/Desktop/text-lens/`）。用户执行：① 有 Ollama 环境运行 spike → ② 创建 GitHub repo 并推送独立仓库
 
 ---
 
@@ -166,7 +166,7 @@ one/
 | G-5 动作句模板 | **✅ 已完成** — [docs/tech/action-sentence-templates.md](docs/tech/action-sentence-templates.md)，已集成至 7 个透镜文件 |
 | Supabase DB | **⏸️ 延后** — 原 C.1.1/C.1.2，Phase 4 启动时再做 |
 | 微信生态 | **⏸️ 暂停** — 转为以 Skill 形式优先发布 |
-| Skill 发布 | **🔜 Phase 1** — 冒烟测试 ✅ → 铁律 ✅ → G-5 集成 ✅ → Ollama spike 框架 ✅ → 运行测试 → 提取独立仓库 → GitHub 发布 |
+| Skill 发布 | **🔜 Phase 1** — 冒烟测试 ✅ → 铁律 ✅ → G-5 集成 ✅ → Ollama spike 框架 ✅ → **独立仓库 ✅** → 运行测试 → GitHub 发布 |
 
 **下一会话起点**：在有 Ollama 的环境中运行 `test/ollama-spike/run-spike.sh` → `node evaluate.mjs` → 若 ≥10/14 PASS 则进入 Skill 独立仓库提取
 **Skill v5.0 架构**：[SKILL.md](.claude/skills/writer/SKILL.md) — 体裁预判路由 → 7 透镜按需加载（含焦距优先级与动作句方向库）→ X→Y→Z 诊断 → 结构化输出（Z 层引用 G-5）
