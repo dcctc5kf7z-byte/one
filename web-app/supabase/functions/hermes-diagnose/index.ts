@@ -90,6 +90,7 @@ function buildHermesPrompt(mode: string, pineGreenActive: boolean): string {
 \`\`\`
 
 ### 重要规则
+0. **颜色名必须严格使用以上六种之一**：crimson, amber, steel_blue, violet, slate_gray, pine_green。不要使用 red/blue/structural/sentiment/digital 或其他任何词作为颜色名。
 1. \`gutter_blocks\` 是二维数组——外层按行索引，内层是该行触发的所有色块
 2. 色块按紧迫度排序：crimson → amber → steel_blue → violet → slate_gray → pine_green
 3. \`diagnosis.analysis\` 覆盖 X（表面效果）→ Y（结构动力学），用中文写作
@@ -107,13 +108,18 @@ ${pineGreenActive ? '松绿已激活——请对比用户指纹中的模式标�
 
 // ═══════════════════════════════════════════════════════════════
 // JSON 提取器 — 处理 LLM 可能包裹 markdown 代码块的输出
+// 多层回退：code block → brace matching → raw
 // ═══════════════════════════════════════════════════════════════
 function extractJSON(text: string): string {
-  // 尝试提取 ```json ... ``` 包裹的内容
-  const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (codeBlock) return codeBlock[1].trim();
+  // 策略1：提取 ```json ... ``` 或 ``` ... ``` 包裹的内容
+  // 使用更宽松的匹配——允许 ``` 前后有空格/换行
+  const codeBlock = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+  if (codeBlock?.[1]) {
+    const inner = codeBlock[1].trim();
+    if (inner.startsWith('{') && inner.includes('}')) return inner;
+  }
 
-  // 尝试提取 { ... } 边界
+  // 策略2：从第一个 { 到最后一个 } 提取
   const jsonStart = text.indexOf('{');
   const jsonEnd = text.lastIndexOf('}');
   if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
@@ -121,6 +127,117 @@ function extractJSON(text: string): string {
   }
 
   return text.trim();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// JSON 修复器 — 处理 LLM 输出的常见 JSON 错误
+// ═══════════════════════════════════════════════════════════════
+function repairJSON(jsonStr: string): string {
+  let s = jsonStr;
+
+  // 1. 移除 BOM 和首尾空白
+  s = s.replace(/^﻿/, "").trim();
+
+  // 2. 修复行内未转义的控制字符（但保留 \n \t \r）
+  // 将真正的裸换行符在字符串值内转义
+  // 策略：找到所有字符串值，修复其中的裸换行符
+
+  // 3. 修复中文引号被误解为 JSON 定界符的问题
+  // LLM 可能输出: "text": "他说"你好"。" → 应该是 \"你好\"
+  // 这在 JSON 中是非法的。尝试在字符串值内部修复
+
+  // 4. 修复尾部逗号（常见于数组/对象的最后一个元素后）
+  s = s.replace(/,(\s*[}\]])/g, '$1');
+
+  // 5. 移除 JSON 代码块标记中可能残留的换行
+  s = s.replace(/^```json\s*\n?/, '').replace(/\n?```$/g, '');
+
+  return s;
+}
+
+function safeJSONParse(jsonStr: string): Record<string, unknown> | null {
+  // 先尝试直接解析
+  try {
+    return JSON.parse(jsonStr) as Record<string, unknown>;
+  } catch {
+    // 尝试修复后解析
+    const repaired = repairJSON(jsonStr);
+    try {
+      return JSON.parse(repaired) as Record<string, unknown>;
+    } catch {
+      // 最后尝试：逐行清理可能的非法字符
+      try {
+        const cleaned = jsonStr
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // 移除控制字符（保留 \n \t \r）
+          .replace(/\r\n/g, '\n')
+          .replace(/\r/g, '\n');
+        return JSON.parse(cleaned) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 颜色规范化 — 修正 LLM 可能输出的非标准颜色名
+// ═══════════════════════════════════════════════════════════════
+const COLOR_ALIASES: Record<string, string> = {
+  "red": "crimson",
+  "yellow": "amber",
+  "blue": "steel_blue",
+  "purple": "violet",
+  "gray": "slate_gray",
+  "green": "pine_green",
+  "grey": "slate_gray",
+  "structural": "slate_gray",
+  "pragmatic": "steel_blue",
+  "linguistic": "steel_blue",
+  "semantic": "violet",
+  "sentiment": "violet",
+  "critical": "crimson",
+  "digital": "slate_gray",
+};
+
+const VALID_COLORS = ["crimson", "amber", "steel_blue", "violet", "slate_gray", "pine_green"];
+
+function normalizeColor(color: string): string {
+  const lower = color.toLowerCase().trim();
+  if (VALID_COLORS.includes(lower)) return lower;
+  // Try alias mapping
+  if (COLOR_ALIASES[lower]) return COLOR_ALIASES[lower];
+  // Default: map unknown colors to slate_gray (least impactful)
+  return "slate_gray";
+}
+
+function normalizeResponse(data: Record<string, unknown>): Record<string, unknown> {
+  // Normalize sentences[].colors
+  if (Array.isArray(data.sentences)) {
+    for (const s of data.sentences as Array<Record<string, unknown>>) {
+      if (Array.isArray(s.colors)) {
+        s.colors = (s.colors as string[]).map(normalizeColor).filter((c, i, a) => a.indexOf(c) === i);
+        // Re-sort by urgency
+        s.colors = (s.colors as string[]).sort((a, b) =>
+          VALID_COLORS.indexOf(a) - VALID_COLORS.indexOf(b)
+        );
+      }
+    }
+  }
+
+  // Normalize gutter_blocks[][].color
+  if (Array.isArray(data.gutter_blocks)) {
+    for (const row of data.gutter_blocks as Array<Array<Record<string, unknown>>>) {
+      if (Array.isArray(row)) {
+        for (const block of row) {
+          if (typeof block.color === "string") {
+            block.color = normalizeColor(block.color);
+          }
+        }
+      }
+    }
+  }
+
+  return data;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -228,7 +345,7 @@ serve(async (req: Request) => {
         },
         buildBody: (sys: string, msg: string) => ({
           model: "claude-opus-4-8",
-          max_tokens: 4096,
+          max_tokens: 3072,
           system: sys,
           messages: [{ role: "user", content: msg }],
           temperature: 0.7,
@@ -246,7 +363,7 @@ serve(async (req: Request) => {
         },
         buildBody: (sys: string, msg: string) => ({
           model: "gpt-4o",
-          max_tokens: 4096,
+          max_tokens: 3072,
           temperature: 0.7,
           messages: [
             { role: "system", content: sys },
@@ -266,7 +383,7 @@ serve(async (req: Request) => {
         },
         buildBody: (sys: string, msg: string) => ({
           model: "gpt-4o-mini",
-          max_tokens: 4096,
+          max_tokens: 3072,
           temperature: 0.7,
           messages: [
             { role: "system", content: sys },
@@ -286,7 +403,7 @@ serve(async (req: Request) => {
         },
         buildBody: (sys: string, msg: string) => ({
           model: "deepseek-chat",
-          max_tokens: 4096,
+          max_tokens: 3072,
           temperature: 0.7,
           messages: [
             { role: "system", content: sys },
@@ -339,10 +456,8 @@ serve(async (req: Request) => {
 
     // ── 解析 JSON 响应 ──
     const jsonStr = extractJSON(rawOutput);
-    let parsed: Record<string, unknown>;
-    try {
-      parsed = JSON.parse(jsonStr) as Record<string, unknown>;
-    } catch {
+    const parsed = safeJSONParse(jsonStr);
+    if (!parsed) {
       console.error(`[Hermes] JSON parse failed. Raw (first 500): ${rawOutput.slice(0, 500)}`);
       return new Response(
         JSON.stringify({
@@ -353,6 +468,9 @@ serve(async (req: Request) => {
         { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // ── 规范化颜色（修正 LLM 可能输出的非标准颜色名）──
+    parsed = normalizeResponse(parsed);
 
     // ── 验证响应结构 ──
     const validation = validateResponse(parsed);
