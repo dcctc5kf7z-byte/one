@@ -40,6 +40,8 @@ test/temp_*
 # Claude
 .claude/cache/
 .claude/worktrees/
+.claude/scheduled_tasks.json
+.claude/scheduled_tasks.lock
 
 # Logs
 *.log
