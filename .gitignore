@@ -8,6 +8,7 @@ dist/
 build/
 .next/
 out/
+.netlify/
 
 # Environment
 .env
@@ -32,10 +33,12 @@ Desktop.ini
 
 # Supabase
 supabase/.temp/
+web-app/supabase/.temp/
 
 # Test artifacts
 test/temp_file
 test/temp_*
+test/tmp/
 
 # Claude
 .claude/cache/
