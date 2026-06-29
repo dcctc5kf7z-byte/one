@@ -1,7 +1,21 @@
-# 实施计划 · 写作诊断工具
+# ⛔ 已废弃 · 实施计划 · 写作诊断工具
+
+> **状态：已废弃 (2026-06-29)**
+> **原因**：此计划基于 v3.1 五状态全链路设计（Phase B–E，122.75h），实际开发中项目演进为 Hermes Phase 2（6 色信号 + 结构化 JSON + 温墨·纸本前端），技术栈和产品路径与本文档描述完全不同。
+> **替代文档**：
+> - [architecture.md](../tech/architecture.md) — 当前实际技术架构
+> - [architecture-review-2026-06-29.md](../tech/architecture-review-2026-06-29.md) — 架构审视报告
+> - [hermes-full-product-design.md](../superpowers/specs/2026-06-28-hermes-full-product-design.md) — Hermes 完整设计规格
+> - [CLAUDE.md](../../CLAUDE.md) — 当前状态与下一会话起点
+>
+> **保留原因**：Phase A 设计决策、暂缓项清单 (DEFER-01~08)、B.6 启发式预分类规则等仍有参考价值。Phase D（微信生态）和 Phase E（测试）的分解结构在未来恢复时可用。
+>
+> ---
+>
+> # ⛔ 已废弃 · 实施计划 · 写作诊断工具
 
 > 最后更新：2026-06-26
-> 从属：Superpowers 重构 Phase B–E
+> 从属：Superpowers 重构 Phase B–E（⚠️ 此路径未执行，实际走 Hermes Phase 2）
 > 设计规格：[docs/superpowers/specs/2026-06-26-full-state-x-y-z-redesign.md](../superpowers/specs/2026-06-26-full-state-x-y-z-redesign.md)
 
 ---

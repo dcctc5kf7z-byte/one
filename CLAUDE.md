@@ -1,15 +1,19 @@
 # CLAUDE.md — 通用文本透视镜 · 项目导航
 
-> 最后更新：2026-06-28
-> **当前阶段**：Phase 2 前端重设计 ✅ — 「温墨·纸本」风格 + 六色信号视觉主角 + Netlify 部署 ✅，手动流程验证 🔜
-> **上一阶段收尾**：Phase 1 完成 — Skill v5.0.2 + GitHub 发布 + Ollama spike 框架就绪
-> **下一会话起点**：手动验证前端+后端联通 → push 所有 commit 到 remote → 决定下一步（先修 personal 体裁截断 或 Phase 3 写作花园）
+> 最后更新：2026-06-29
+> **当前阶段**：Phase 3 Skill 优先统一 — Web App 降为试吃入口，不再独立演进
+> **上一阶段收尾**：Phase 2 前端重设计完成 + 架构审视发现 4 核心问题 + P0-1/2/3 全部处理
+> **下一会话起点**：git push → Open Design 安装 → Skill OD 适配 → Skill 迁移规划（Hermes 资产提取）
 
 ---
 
 ## 项目概述
 
 本项目开发了一款**通用文本透视镜**（`/text-lens`）——基于 X→Y→Z 诊断模型的镜像式文本分析代理。核心定位：镜子不是导师。反射文本，让用户看见文字里本已存在但他自己还没意识到的东西。
+
+**产品形态**：Claude Code Skill（主产品） + Web App（试吃入口，降级维护）
+
+**核心差异化**：多轮对话写作陪伴 × 7 体裁透镜 × X→Y→Z 路由。Claude Code Skill 中文写作分析类目空白，Web 文本分析为红海（Grammarly/秘塔写作猫/火龙果）。
 
 **产品 System Prompt**：[docs/product/产品MVP方案-v3.md](docs/product/产品MVP方案-v3.md)（v3.1 三层重构·最新）
 
@@ -35,7 +39,8 @@ one/
 │   │   ├── 国内环境适配方案.md           # 国内部署适配
 │   │   └── 小白变现第一步.md            # 入门指南
 │   ├── tech/                           # 技术方案
-│   │   ├── architecture.md             # 技术架构文档
+│   │   ├── architecture.md             # 技术架构文档（2026-06-29 重写）
+│   │   ├── architecture-review-2026-06-29.md # 架构审视 + 压力测试报告
 │   │   ├── focal-engine-spec.md        # G-1 六维焦距分析引擎规格
 │   │   └── action-sentence-templates.md # G-5 L4 动作句生成模板
 │   ├── design/                         # 设计规划
@@ -132,7 +137,7 @@ one/
 3. **修改产品逻辑前**：先读 [产品MVP方案-修订版.md](.claude/skills/writer/产品MVP方案-修订版.md)
 4. **修改技术方案前**：先读 [docs/tech/architecture.md](docs/tech/architecture.md)
 5. **修改 UI 前**：先读 [docs/design/ui-design.md](docs/design/ui-design.md)
-6. **不确定执行顺序时**：查 [docs/execution/implementation-plan.md](docs/execution/implementation-plan.md)
+6. **不确定执行顺序时**：查 [docs/tech/architecture.md](docs/tech/architecture.md) 和 [CLAUDE.md](CLAUDE.md) 当前状态表（implementation-plan.md 已废弃）
 
 ### 开发者日志规范
 - 文件命名：`devlog/YYYY-MM-DD.md`
@@ -146,11 +151,12 @@ one/
 - 产品需求变化 → 更新 `docs/requirements/product-spec.md`
 - 技术选型变化 → 更新 `docs/tech/architecture.md`
 - 设计方案变化 → 更新 `docs/design/ui-design.md`
-- 执行计划调整 → 更新 `docs/execution/implementation-plan.md`
+- 执行计划调整 → 更新 `CLAUDE.md` 当前状态表（implementation-plan.md 已废弃，不再使用分阶段计划文档）
 - 每次更新文档时，在文件头部的"最后更新"日期处记录
 
 ### 产品迭代原则
-- X→Y→Z 方法论和"推进不是陪伴"是不可偏离的核心
+- X→Y→Z 方法论和"镜子不是导师"是不可偏离的核心
+- **Skill 优先**：Claude Code Skill 是主产品，所有新功能先上 Skill，Web App 跟进（2026-06-29 决策）
 - 修改 System Prompt 前，必须通过 Edge Function + curl 脚本完成至少 3 段文字的测试（claude.ai 不可用——不走网页端验证路径）
 - 所有 System Prompt 修改必须有对应的修订对照表和测试清单更新
 
@@ -165,37 +171,34 @@ one/
 
 | 项 | 状态 |
 |----|------|
+| **🎯 产品方向** | **✅ Skill 优先** — Claude Code Skill 为主产品，Web App 降为试吃入口（2026-06-29 决策） |
 | 全状态设计规格 | **✅ 已定稿**（[设计文档](docs/superpowers/specs/2026-06-26-full-state-x-y-z-redesign.md)） |
-| Skill v5.0.2 铁律扩充 | **✅ 已完成** — v5.0.1 + 铁律 #9 推≠替写 + #10 动作句优先 |
-| 产品 Skill 入口 | [SKILL.md](.claude/skills/writer/SKILL.md)（v5.0.2，11 条铁律，~170 行自包含入口） |
-| 网页版代码 | **✅ Phase 2 Hermes**（`web-app/` — 「温墨·纸本」风格，纯 Tailwind，Netlify: `eloquent-swan-c78519.netlify.app`） |
-| Edge Function (hermes-diagnose) | **✅ v6 已部署** — safeJSONParse 4层回退 + repairTruncatedJSON + max_tokens=4096 |
-| Edge Function (anthropic-diagnose) | **✅ v5.0.2 保留兼容**（v30，单文件合并版，五层条件注入） |
-| Hermes 冒烟测试 | **✅ 12/14 通过 (85.7%)** — personal 体裁 2 项截断为已知限制 |
+| Skill v5.0.2 | **✅ 已发布** — 11 条铁律 + 7 体裁透镜 + G-5 集成 + GitHub Release → [text-lens](https://github.com/dcctc5kf7z-byte/text-lens) |
+| 产品 Skill 入口 | [SKILL.md](.claude/skills/writer/SKILL.md)（v5.0.2，~170 行自包含入口） |
+| Web App (Hermes) | **⏸️ 降级** — 保留 Netlify 部署，不再独立演进 System Prompt，改为引导用户安装 Skill |
+| Web App 代码 | `web-app/` — 「温墨·纸本」风格，React 19 + Tailwind 4 + Vite 8，保留为技术资产 |
+| Edge Function (hermes-diagnose) | **⏸️ 降级** — v6 保留部署，后续不再更新 System Prompt |
+| Edge Function (anthropic-diagnose) | **✅ v5.0.2**（v30，保留兼容） |
+| Hermes 冒烟测试 | 12/14 (85.7%)，personal 截断不再修复（产品方向已转） |
 | 单轮测试 (旧) | **✅ 15/15 通过（100%）** |
 | 流转测试 (旧) | **✅ 13/13 全部可达** |
-| Hermes 设计文档 | **✅ v1.2 已定稿**（[16 章完整设计](docs/superpowers/specs/2026-06-28-hermes-full-product-design.md)） |
-| 前端重设计 | **✅ 已完成** — 15 文件变更，「温墨·纸本」风格，9 策略六色信号视觉主角 |
-| Netlify 部署 | **✅ 已部署** — `eloquent-swan-c78519.netlify.app` |
-| Git 仓库 | **✅ 9 commits**，working tree clean |
-| 设计-实施间隙 | **✅ 已盘点** — 4 核心问题 + 6 间隙 + 8 阶段困难 + 跨阶段风险，G-1/G-5 已完成 |
-| 优先级重排 | **✅ 已定稿** — Phase 1→2→停→评估，Phase 4 延后，Phase 5/6 暂停 |
-| G-1 焦距引擎规格 | **✅ 已完成** — [docs/tech/focal-engine-spec.md](docs/tech/focal-engine-spec.md) |
-| G-5 动作句模板 | **✅ 已完成** — [docs/tech/action-sentence-templates.md](docs/tech/action-sentence-templates.md)，已集成至 7 个透镜文件 |
-| Supabase DB | **⏸️ 延后** — 原 C.1.1/C.1.2，Phase 4 启动时再做 |
-| 微信生态 | **⏸️ 暂停** — 转为以 Skill 形式优先发布 |
-| Ollama 可行性 spike | **⏸️ 暂缓** — 测试框架已就绪（`test/ollama-spike/`），Qwen 2.5 14B 待下载完成后运行 |
-| Skill 发布 | **✅ Phase 1 完成** — 冒烟测试 ✅ → 铁律 ✅ → G-5 集成 ✅ → Ollama spike 框架 ✅ → 独立仓库 ✅ → GitHub 发布 ✅ → [text-lens](https://github.com/dcctc5kf7z-byte/text-lens) |
-| 手动流程验证 | **🔜 待做** — 访问 Netlify 站点确认前端+后端联通 |
+| G-1 焦距引擎规格 | **✅ 已定稿** — [958 行](docs/tech/focal-engine-spec.md)，待集成至 7 透镜（P2） |
+| G-5 动作句模板 | **✅ 已完成** — 已集成至 7 个透镜文件 |
+| 架构审视 | **✅ 已完成** — [报告](docs/tech/architecture-review-2026-06-29.md)，4 核心问题 + 7 压测 + 12 行动项 |
+| 文档止血 (P0) | **✅ P0-1/2/3 全部完成** — architecture.md 重写 + implementation-plan.md 废弃 + Skill/Web 关系决策 |
+| 市场调研 | **✅ 已完成** — [报告](docs/product/market-research-2026-06-29.md)：Claude Code Skill 中文写作诊断蓝海确认，零直接竞品 |
+| Open Design 适配 | **🔜 待做** — 安装 OD → 添加 YAML frontmatter → `od.mode: utility` |
+| Skill 迁移规划 | **🔜 待做** — 从 Hermes 提取可复用资产（6色信号/焦距集成/指纹）到 Skill |
+| Git 仓库 | **⚠️ 未 push** — 本地 commits 待推送到 GitHub remote |
+| Supabase DB | **⏸️ 延后** — 原 C.1.1/C.1.2 |
+| 微信生态 | **⏸️ 暂停** — Skill 优先，Web 分发不是当前重点 |
+| Ollama 可行性 spike | **⏸️ 暂缓** — 框架就绪，Qwen 2.5 14B 待下载 |
 
-**下一会话起点**：手动验证前端+后端联通 → push 所有 commit 到 remote → 决定下一步（先修 personal 体裁截断 或 Phase 3 写作花园）
-**Skill v5.0 架构**：[SKILL.md](.claude/skills/writer/SKILL.md) — 体裁预判路由 → 7 透镜按需加载（含焦距优先级与动作句方向库）→ X→Y→Z 诊断 → 结构化输出（Z 层引用 G-5）
+**下一会话起点**：git push → Open Design 安装 → Skill OD 适配 → Skill 迁移规划（Hermes 资产提取 → Skill）
+**Skill v5.0.2 架构**：[SKILL.md](.claude/skills/writer/SKILL.md) — 体裁预判路由 → 7 透镜按需加载（含焦距优先级与动作句方向库）→ X→Y→Z 诊断 → 结构化输出（Z 层引用 G-5）
 **v5.0.2 变更**：铁律 9→11 条 + G-5 动作句模板集成至 7 透镜 + SKILL.md 输出格式引用 G-5
-**v5.0.1 变更**：语言一致性规则 / 输出长度 ≤500 字 / 透镜英文术语内部参考化 / 输出模板去 X/Y/Z 标签
-**前端状态机（Hermes Phase 2）**：`idle → analyzing → results_shown`（3-phase + orthogonal mode: perspective ↔ my_text）
-**前端设计系统**：「温墨·纸本」(Warm Ink & Paper) — 暖纸底 `#F5F0E1` + 墨色字 `#2C2416` + Source Serif 4/Inter 字体 + 纸纹理 CSS SVG noise + 笔记本横线 + 六色信号 9 策略贯穿 UI
+**产品决策**：Skill 优先（2026-06-29）。Web 文本分析为红海，Claude Code Skill 中文写作分析为蓝海。多轮对话形态天然适配"镜子"定位。
+**Web App 定位**：试吃入口，引导用户安装 Skill。不再独立演进 System Prompt。代码保留为技术资产。
 **暂缓清单**：见 [devlog/2026-06-26.md](devlog/2026-06-26.md) DEFER-01 ~ DEFER-08
 **Token 预算（Skill）**：最小 ~600t（通用透镜）/ 典型 ~1,200t（一体裁透镜）/ 最坏 ~3,000t（多透镜并行 + 深层分析）
-**API 降级链**：🦾 Claude Opus 4.8 (灵眸·Anthropic 原生) → GPT-4o → GPT-4o-mini → DeepSeek-V3 → GPT-3.5（Tier 2-5 通过 API2D `oa.api2d.net`）
-**国内 Claude 通道**：灵芽 `api.lingyaai.cn` ⭐ / 灵眸AI `api.lmuai.com` ⭐（均已调研，灵眸已集成到 Edge Function v5.0.2，max 分组后可用率 100%）
-**Hermes 冒烟测试**：12/14 通过 (85.7%)，personal 体裁 2 项 JSON 截断为 Supabase 免费层 + max_tokens=4096 已知限制
+**API 降级链**：🦾 Claude Opus 4.8 (灵眸·Anthropic 原生) → GPT-4o → GPT-4o-mini → DeepSeek-V3（Tier 2-4 通过 API2D `oa.api2d.net`）
