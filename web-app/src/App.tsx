@@ -9,6 +9,7 @@ import AnalyzeButton from './components/AnalyzeButton'
 import HistoryPanel from './components/HistoryPanel'
 import Footer from './components/Footer'
 import PrivacyNotice from './components/PrivacyNotice'
+import SkillCTA from './components/SkillCTA'
 
 function App() {
   // ── 输入 ──
@@ -141,6 +142,9 @@ function App() {
           <Header mode={mode} />
           <ModeSlider mode={mode} onChange={handleModeChange} disabled={isLoading} />
         </div>
+
+        {/* ── Skill CTA（仅空闲态） ── */}
+        {phase === 'idle' && <SkillCTA />}
 
         {/* ── 双列布局 ── */}
         <div className="flex flex-col lg:flex-row gap-6">

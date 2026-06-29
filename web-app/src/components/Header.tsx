@@ -24,7 +24,7 @@ export default function Header({ mode = 'perspective' }: Props) {
           </h1>
         </div>
         <p className="text-[13px] italic font-[var(--font-serif)]" style={{ color: 'var(--text-ink-tertiary)' }}>
-          写下来，就有迹可循
+          Web 试用入口 · 完整体验请在 Claude Code 中安装 /text-lens
         </p>
       </div>
 

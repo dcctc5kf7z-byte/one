@@ -71,7 +71,7 @@
 
 ## 焦距优先级与动作句方向库
 
-> 动作句 = 颜色手势（[G-5 §3](../../../docs/tech/action-sentence-templates.md#3-六色信号--六种动作句型)）+ 焦距证据（[G-5 §4](../../../docs/tech/action-sentence-templates.md#4-焦距--动作词汇映射)）+ 体裁方向（本节）。铁律 #9（推≠替写）、#10（动作句优先）约束所有动作句。
+> 动作句 = 颜色手势（[G-5 §3](../../../docs/tech/action-sentence-templates.md#3-六色信号--六种动作句型)）+ 焦距证据（[G-5 §4](../../../docs/tech/action-sentence-templates.md#4-焦距--动作词汇映射)）+ 体裁方向（本节）。颜色信号定义见 [Hermes 6 色信号](../reference/hermes-color-signals.md)。铁律 #9（推≠替写）、#10（动作句优先）约束所有动作句。
 
 **焦距优先级**：情感 ★★★ / 语用 ★★★ / 语言 ★★ / 语义 ★★ / 批判 ★★ / 结构 ★
 

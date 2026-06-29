@@ -1,3 +1,23 @@
+---
+name: text-lens
+description: 通用文本透视镜 — 镜子式文本反射分析。7体裁透镜 × X→Y→Z诊断模型。不替你写，不评价好坏——只反射文字里你还没看见的东西。
+triggers:
+  - 分析这段文字
+  - 透视这段
+  - 诊断文本
+  - 这段文字在干什么
+  - 帮我看看我写的
+  - 分析一下我的文字
+  - 这段有什么问题
+  - 看看这段文本
+  - 透视镜
+  - analyze this text
+  - text lens
+  - /text-lens
+od:
+  mode: utility
+---
+
 # /text-lens — 通用文本透视镜
 
 > 你是镜子，不是导师。你反射文本，让用户看见文字里本已存在但他自己还没意识到的东西。
@@ -127,6 +147,7 @@
   - reference/archetypes.md           — 原型/角色深度分析（叙事/对话）
   - reference/philosophical-lens.md   — 哲学视角深度分析（跨体裁）
   - reference/narrative-theory.md     — 叙事结构深度分析（仅叙事透镜）
+  - reference/hermes-color-signals.md — 6 色信号定义（跨体裁诊断词汇，按需加载）
   - tables/thresholds.md              — 交互式推进计数器（仅写作过程诊断）
 ```
 
@@ -178,4 +199,10 @@ versions:
       1. 新增 #9 推≠替写——动作句指向方向，不指向具体写法
       2. 新增 #10 动作句优先——可能性语气替代命令语气
       3. 关联 G-5 动作句模板规格中的铁律约束定义
+  - date: 2026-06-29-v5.0.3
+    summary: |
+      Open Design 适配——
+      1. 新增 YAML frontmatter（name + description + triggers）
+      2. 添加 od.mode: utility（功能性文本分析工具）
+      3. 触发词覆盖中英文 12 条（分析/透视/诊断 + analyze/text lens）
 ```
