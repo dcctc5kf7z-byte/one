@@ -2,8 +2,8 @@
 
 > 最后更新：2026-06-29
 > **当前阶段**：Phase 3 Skill 优先统一 — 迁移完成，队列清空
-> **上一阶段收尾**：Hermes→Skill 迁移全部完成（M-1/M-2/M-3）+ 项目大扫除（-5117 行）
-> **下一会话起点**：Open Design 安装 → OD 发布 text-lens → 下一阶段规划
+> **上一阶段收尾**：Hermes→Skill 迁移全部完成（M-1/M-2/M-3）+ 项目大扫除（-5117 行）+ text-lens v5.0.4 同步 + write-diagnose 清理
+> **下一会话起点**：`git push`（GitHub 直连恢复后）→ Open Design 安装 → OD 发布 text-lens → 下一阶段规划
 
 ---
 
@@ -18,6 +18,41 @@
 **产品 System Prompt**：[docs/product/产品MVP方案-v3.md](docs/product/产品MVP方案-v3.md)（v3.1 三层重构·最新）
 
 **Skill 入口**：[.claude/skills/writer/SKILL.md](.claude/skills/writer/SKILL.md)（v5.0.4 通用文本透视·11 条铁律·写作指纹·G-1 焦距集成）
+
+### 双仓架构
+
+本项目由两个 GitHub 仓库组成：
+
+| 仓库 | 路径 | 角色 | GitHub |
+|------|------|------|--------|
+| **one** | `Desktop/one` | 开发主仓 — 全量资产 + Web App + 文档 + 日志 | `dcctc5kf7z-byte/one` |
+| **text-lens** | `Desktop/text-lens` | 发布仓 — 只含 Skill 独立运行所需文件 | `dcctc5kf7z-byte/text-lens` |
+
+**同步规则**：
+- `one` 是权威源，`text-lens` 从 `one` 单向同步
+- 同步映射：`one/.claude/skills/writer/` → `text-lens/`
+- 路径转换：`one` 中 `../../docs/tech/action-sentence-templates.md` → `text-lens` 中 `./reference/action-sentence-templates.md`
+- **每次修改 Skill 文件后**，必须同步更新 `text-lens` 仓库
+- 同步命令：`cp` + `sed` 路径替换（详见下方操作流程）
+
+**同步操作流程**：
+```bash
+SRC="c:/Users/zhong/Desktop/one/.claude/skills/writer"
+DST="c:/Users/zhong/Desktop/text-lens"
+
+# 1. SKILL.md（需路径替换）
+sed 's|../../docs/tech/action-sentence-templates.md|./reference/action-sentence-templates.md|g' "$SRC/SKILL.md" > "$DST/SKILL.md"
+
+# 2. 其他文件直接复制
+cp "$SRC/iron-laws.md" "$DST/iron-laws.md"
+for f in poetic narrative argument technical dialogue personal general; do
+  cp "$SRC/lenses/$f.md" "$DST/lenses/$f.md"
+done
+cp "$SRC/reference/hermes-color-signals.md" "$DST/reference/hermes-color-signals.md"
+cp "$SRC/tables/dead-ends.md" "$DST/tables/dead-ends.md"
+cp "$SRC/tables/thresholds.md" "$DST/tables/thresholds.md"
+cp "$SRC/profile/"* "$DST/profile/"
+```
 
 ---
 
@@ -124,12 +159,14 @@ one/
 | 架构审视 | **✅ 已完成** — [报告](docs/tech/architecture-review-2026-06-29.md) |
 | 市场调研 | **✅ 已完成** — [报告](docs/product/market-research-2026-06-29.md)：蓝海确认 |
 | Git 仓库 | **✅ 已同步** — GitHub: [dcctc5kf7z-byte/one](https://github.com/dcctc5kf7z-byte/one) |
+| text-lens 发布仓 | **✅ v5.0.4 已同步** — GitHub: [dcctc5kf7z-byte/text-lens](https://github.com/dcctc5kf7z-byte/text-lens)（从 one 单向同步） |
 | 项目清理 | **✅ 已完成** — 删除 27 个过时文件（-5117 行），归档 superpowers |
 | Supabase DB | **⏸️ 延后** |
 | 微信生态 | **⏸️ 暂停** |
 | Ollama spike | **⏸️ 暂缓** — 框架就绪，Qwen 2.5 14B 待下载 |
 
-**下一会话起点**：Open Design 安装 → OD 发布 text-lens → 下一阶段规划
+**下一会话起点**：`git push`（GitHub 直连恢复后）→ Open Design 安装 → OD 发布 text-lens → 下一阶段规划
+**write-diagnose**：已废弃。旧 Web App 前端部署仓（GitHub Pages + Gitee Pages），代码已融入 `one/web-app/`，Netlify 部署中。
 **Skill v5.0.4 架构**：[SKILL.md](.claude/skills/writer/SKILL.md) — 体裁预判路由 → 7 透镜按需加载（含 G-1 焦距优先级 + G-5 动作句方向库）→ X→Y→Z 诊断 → 结构化输出 → 写作指纹更新
 **产品决策**：Skill 优先（2026-06-29）。Web 文本分析为红海，Claude Code Skill 中文写作分析为蓝海。
 **Token 预算（Skill）**：最小 ~600t（通用透镜）/ 典型 ~1,200t（一体裁透镜）/ 最坏 ~3,000t（多透镜并行 + 深层分析）+ 指纹 ~500-800t
