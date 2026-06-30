@@ -147,7 +147,7 @@ one/
 | **🎯 产品方向** | **✅ Skill 优先** — Claude Code Skill 为主产品，Web App 降为试吃入口（2026-06-29 决策） |
 | Skill v5.0.4 | **✅ 已发布** — 11 条铁律 + 7 体裁透镜 + G-1 焦距集成 + G-5 动作句 + 6 色信号 + 写作指纹 + OD 适配 |
 | 产品 Skill 入口 | [SKILL.md](.claude/skills/writer/SKILL.md)（v5.0.4，~200 行自包含入口） |
-| /redbook v1.8 | **🔄 已分离** — 独立项目 `Desktop/redbook/`，v1.8 双模式入口（快速+教练）+ 发布预览 + git 仓库已初始化 |
+| /redbook v1.9 | **🔄 已分离** — 独立项目 `Desktop/redbook/`，v1.9 P1 三项教练增强（渐进Fact Sheet+标题公式透明+智能标签）+ git 仓库已初始化 |
 | Web App | **⏸️ 降级** — 保留 Netlify 部署，引导用户安装 Skill，不再独立演进 |
 | Edge Function (hermes-diagnose) | **⏸️ 降级** — v6 保留部署 |
 | Edge Function (anthropic-diagnose) | **✅ v5.0.2**（v30，保留兼容） |
